@@ -1,0 +1,63 @@
+# Design Integration Checklist
+# Run after design changes. Consider the whole, not just individual items.
+
+# ============================================================================
+# PER ROOM - Consider each room individually
+# ============================================================================
+
+per_room:
+  density:
+    consider: "Does the room feel balanced - not cramped, not empty?"
+    metric: "Floor coverage = sum(furniture footprint) / room area"
+    
+  focal_point:
+    consider: "Is there one clear thing that draws the eye? Or competing elements?"
+    
+  flow:
+    consider: "Can you move through naturally? Or does the layout fight you?"
+    
+  light:
+    consider: "Is there enough light for what happens here?"
+    
+  breathing_room:
+    consider: "Do key pieces have space around them, or are they squeezed?"
+
+# ============================================================================
+# PER APARTMENT - Consider connections and coherence
+# ============================================================================
+
+per_apartment:
+  material_palette:
+    consider: "Do materials repeat intentionally? Or is it chaotic?"
+    metric: "Count unique materials - aim for 3-5 main ones"
+    
+  transitions:
+    consider: "Do adjacent rooms feel connected? Or jarring at thresholds?"
+    
+  sightlines:
+    consider: "What do you see through openings? Does it compose well?"
+    
+  style_thread:
+    consider: "Is there a clear identity? Would client recognize their brief?"
+    
+  hierarchy:
+    consider: "What's the most important room? Does design emphasis match?"
+
+# ============================================================================
+# QUESTIONS TO ASK
+# ============================================================================
+
+questions:
+  - "What story does this apartment tell about who lives here?"
+  - "Is there a quiet moment in each room, or is everything shouting?"
+  - "What would you change if you had to remove one item?"
+  - "What's missing that would complete the vision?"
+
+# ============================================================================
+# TOOL COMMANDS
+# ============================================================================
+
+commands:
+  positions: "python tools/room_spatial.py <room>.yaml"
+  plot: "python tools/room_spatial.py <room>.yaml --plot <room>-floorplan.png"
+  view: "python tools/room_spatial.py <room>.yaml --view <x>,<y> --facing <dir>"

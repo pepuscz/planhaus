@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Catalog vector DB (user-generated)
+scripts/catalog/catalog_vector_db/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Generated floorplans (sample ones are committed)
+*.png
+!sample-project/**/*.png

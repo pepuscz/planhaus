@@ -1,0 +1,30 @@
+# Item Name
+
+name: ""
+url: ""
+price: 
+
+status: considering  # considering | shortlisted | rejected | purchased | installed
+
+dimensions:
+  width: 
+  depth: 
+  height: 
+
+materials: []   # e.g., [solid oak, linen, black metal]
+colors: []      # e.g., [charcoal, cream]
+finish: ""      # e.g., matte, glossy, brushed
+style: ""       # e.g., mid-century, Mediterranean, industrial
+
+# OBJECTIVE description of the item itself.
+# Describe: form, proportions, visual weight, texture, materials, craftsmanship.
+# NO recommendations, placement suggestions, or "how to use" - those go in room YAML.
+# SKIP: certifications, load capacity, assembly, delivery.
+description: |
+
+# Download product image and save locally.
+image: ""  # local path, e.g., furniture/example.jpg
+
+notes: |
+  # Factual notes only (brand, series, variants, stock status).
+  # NO design recommendations or placement suggestions.

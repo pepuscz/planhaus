@@ -1,0 +1,139 @@
+# BEDROOM
+
+id: bedroom
+name: "Bedroom"
+area_m2: 12.5  # official
+
+ascii: |
+  #      N
+  #      ↑
+  #    D──────────C
+  #    │          │
+  #    │ Bedroom  │
+  #    │          │
+  #    A──────────B
+
+walls:
+  - id: A-B
+    direction: east
+    length: 360
+
+  - id: B-C
+    direction: north
+    length: 350
+
+  - id: C-D
+    direction: west
+    length: 360
+
+  - id: D-A
+    direction: south
+    length: 350
+
+validation:
+  trace_closes: true
+  calculated_area: 12.60
+  area_difference_pct: 0.8
+  area_matches: true
+
+ceiling_height: 260
+
+design:
+  goal: "Restful retreat — soft, quiet palette with tactile warmth. Sleep-first room."
+  objectives:
+    - "Minimal palette: white + warm linen + light wood only"
+    - "Bed is focal point — invest in good bedding, not many accessories"
+    - "Blackout capability for sleep quality"
+    - "Warm bedside lighting, no overhead"
+    - "Keep surfaces clear — storage in wardrobe, not on nightstands"
+
+windows:
+  - id: bedroom-window
+    wall: B-C
+    position: 80
+    width: 140
+    notes: "East-facing, morning light"
+
+openings:
+  - id: bedroom-door
+    wall: A-B
+    position: 10
+    width: 80
+    to: hall
+    has_door: true
+
+outlets:
+  - id: outlet-bed-left
+    wall: C-D
+    position: 260
+    height: 30
+    type: double
+
+  - id: outlet-bed-right
+    wall: A-B
+    position: 260
+    height: 30
+    type: double
+
+heating: []
+plumbing: []
+
+lighting:
+  - id: bedside-left
+    position:
+      wall: [C-D, D-A]
+      offset: [55, 55]
+    ceiling: null
+    mount: table
+    fixture: registry/furniture/table-lamp.yaml
+    why: "Warm light for reading, on nightstand"
+
+  - id: bedside-right
+    position:
+      wall: [B-C, C-D]
+      offset: [70, 55]
+    ceiling: null
+    mount: table
+    fixture: registry/furniture/table-lamp.yaml
+    why: "Matching pair for symmetry"
+
+furniture:
+  - id: bed
+    registry: registry/furniture/bed.yaml
+    position:
+      wall: [D-A, C-D]
+      offset: [94, 100]
+    facing: south
+    why: "Headboard against north wall, centered, facing door"
+
+  - id: nightstand-left
+    registry: registry/furniture/nightstand.yaml
+    position:
+      wall: [C-D, D-A]
+      offset: [55, 35]
+    orientation: E-W
+    why: "Left of bed, near west wall"
+
+  - id: nightstand-right
+    registry: registry/furniture/nightstand.yaml
+    position:
+      wall: [B-C, C-D]
+      offset: [85, 55]
+    orientation: E-W
+    why: "Right of bed, near east wall"
+
+accessories:
+  - id: bedroom-rug
+    type: area-rug
+    location: "Under bed, extending 60cm on each side"
+    notes: "Soft wool, ~160x230cm, off-white or light beige"
+
+  - id: curtains
+    type: window-treatment
+    location: "Bedroom window"
+    notes: "Linen curtains, natural color + blackout liner"
+
+notes: |
+  Simple rectangular room. Bed centered on north wall with nightstands flanking.
+  East-facing window provides gentle morning light.
+  Door at SE corner to hall.
