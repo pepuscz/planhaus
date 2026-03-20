@@ -37,6 +37,23 @@ except ImportError:
     print("ChromaDB not installed. Run: pip install chromadb")
     exit(1)
 
+def _setup_onnx_model_path(db_path: str) -> None:
+    """Point ChromaDB's ONNX model to the bundled copy inside the DB directory.
+
+    When building, the model is downloaded and cached into db_path/onnx_model/.
+    At query time, we monkey-patch DOWNLOAD_PATH so ChromaDB finds it locally
+    and never attempts a network download (which fails in sandboxed VMs).
+    """
+    from pathlib import Path
+    model_dir = os.path.join(db_path, "onnx_model")
+    onnx_dir = os.path.join(model_dir, "onnx")
+    if os.path.isdir(onnx_dir):
+        try:
+            from chromadb.utils.embedding_functions.onnx_mini_lm_l6_v2 import ONNXMiniLM_L6_V2
+            ONNXMiniLM_L6_V2.DOWNLOAD_PATH = Path(model_dir)
+        except ImportError:
+            pass  # older chromadb version, skip
+
 
 # =============================================================================
 # Configuration
@@ -247,7 +264,10 @@ class CatalogVectorDB:
     def __init__(self, db_path: str = DB_PATH):
         self.db_path = db_path
         self.hash_store_path = os.path.join(db_path, "product_hashes.json")
-        
+
+        # Use bundled ONNX model if available (avoids network download)
+        _setup_onnx_model_path(db_path)
+
         # Initialize ChromaDB with persistent storage
         os.makedirs(db_path, exist_ok=True)
         self.client = chromadb.PersistentClient(path=db_path)
@@ -380,9 +400,52 @@ class CatalogVectorDB:
         
         # Save hashes
         self._save_hashes()
-        
+
+        # Bundle ONNX embedding model into the DB directory for offline use
+        self._cache_onnx_model()
+
         print(f"\n✅ Database ready! Total products indexed: {self.collection.count()}")
     
+    def _cache_onnx_model(self):
+        """Download and cache the ONNX embedding model inside the DB directory.
+
+        This makes the DB self-contained: queries work without network access.
+        The model (~80MB) is downloaded from ChromaDB's S3 bucket on first build,
+        then bundled at db_path/onnx_model/ for offline use.
+        """
+        import shutil
+        from pathlib import Path
+
+        dest = os.path.join(self.db_path, "onnx_model")
+        onnx_dest = os.path.join(dest, "onnx")
+        if os.path.isdir(onnx_dest) and len(os.listdir(onnx_dest)) >= 5:
+            print("\n📦 ONNX model already bundled, skipping.")
+            return
+
+        try:
+            from chromadb.utils.embedding_functions.onnx_mini_lm_l6_v2 import ONNXMiniLM_L6_V2
+
+            print("\n📦 Caching ONNX embedding model for offline use...")
+
+            # Trigger download to default cache location
+            ef = ONNXMiniLM_L6_V2()
+            ef(["trigger download"])
+
+            # Copy from default cache to DB directory
+            src = Path.home() / ".cache" / "chroma" / "onnx_models" / "all-MiniLM-L6-v2"
+            src_onnx = src / "onnx"
+            if src_onnx.is_dir():
+                os.makedirs(dest, exist_ok=True)
+                if os.path.exists(onnx_dest):
+                    shutil.rmtree(onnx_dest)
+                shutil.copytree(str(src_onnx), onnx_dest)
+                print(f"   ✅ Model cached at {dest}")
+            else:
+                print(f"   ⚠️  Model source not found at {src_onnx}")
+        except Exception as e:
+            print(f"   ⚠️  Could not cache ONNX model: {e}")
+            print("   Queries will require network access to download the model.")
+
     def _add_products(self, products: List[Dict], batch_size: int = 500):
         """Add products to the collection in batches."""
         for i in range(0, len(products), batch_size):

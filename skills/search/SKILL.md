@@ -6,13 +6,31 @@ args: "\"<query>\" [--source sweeek|kavehome|zarahome] [--max-price N]"
 
 # Search Product Catalog
 
-Query the vector database for products matching a natural language description.
+Semantic vector search across the product catalog database.
+
+## Prerequisites
+
+The catalog database (`catalog_vector_db/` directory) must exist in the project folder. It is NOT included with the plugin — the user builds it from their own crawled product data.
 
 ## Steps
 
-1. Run the catalog query tool:
+1. Install chromadb if not available:
    ```bash
-   python3 ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/query_catalog.py "<query>" --max-price <N>
+   python3 -c "import chromadb" 2>/dev/null || pip install -q chromadb
+   ```
+
+2. Find the catalog database in the project directory:
+   ```bash
+   DB_PATH=$(find /sessions/*/mnt -name "catalog_vector_db" -type d 2>/dev/null | head -1)
+   if [ -z "$DB_PATH" ]; then
+     DB_PATH=$(find . -name "catalog_vector_db" -type d 2>/dev/null | head -1)
+   fi
+   ```
+   If not found, tell the user they need to build it first (see Notes below).
+
+3. Run the query:
+   ```bash
+   CATALOG_DB_PATH="$DB_PATH" python3 ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/query_catalog.py "<query>"
    ```
 
    Optional flags:
@@ -22,15 +40,14 @@ Query the vector database for products matching a natural language description.
    - `--json` — machine-readable output
    - `--full` — include full product data
 
-2. If the database is not found or empty, tell the user:
-   - The catalog DB is not included with the plugin (it's user data)
-   - They can build one: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/catalog_vectordb.py build --source <data.json>`
-   - Or install catalog deps first: `pip install -r ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/requirements.txt`
-
-3. Present results with: name, price, source, match %, URL.
+4. Present results with: name, price, source, match %, URL.
 
 ## Notes
 
+- The database includes a bundled ONNX embedding model for offline use — no network access needed at query time.
 - First query per session takes 30-60s to load the vector DB.
-- Requires chromadb (`/planhaus:setup` with catalog option).
-- The DB is built from crawled product data that the user provides.
+- To build a new database (requires internet + crawled product data):
+  ```bash
+  python3 ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/catalog_vectordb.py build
+  ```
+  This indexes products AND caches the embedding model for offline use.
