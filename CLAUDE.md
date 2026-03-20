@@ -30,3 +30,18 @@ claude --plugin-dir .
 /planhaus:validate living-room
 /planhaus:render living-room
 ```
+
+## Releasing
+
+Cowork detects updates by comparing the `version` in `.claude-plugin/plugin.json`.
+
+1. Bump `version` in `.claude-plugin/plugin.json` (semver: MAJOR.MINOR.PATCH)
+2. Commit and push to main
+3. In Cowork: plugin shows "Update" button when remote version > installed version
+
+No version bump = no update visible to users. Always bump when pushing changes that affect skills, scripts, hooks, or templates.
+
+Version guide:
+- PATCH (0.1.x): bug fixes, typos, minor script tweaks
+- MINOR (0.x.0): new skills, significant script changes, template updates
+- MAJOR (x.0.0): breaking changes to project format or skill interfaces
