@@ -60,8 +60,19 @@ CATALOG_CONFIGS = {
     },
 }
 
-# Vector DB stored locally in this repo
-DB_PATH = os.path.join(os.path.dirname(__file__), "catalog_vector_db")
+# Vector DB location — search order:
+# 1. CATALOG_DB_PATH env var (explicit override)
+# 2. ./catalog_vector_db (in current working directory / user project)
+# 3. Next to this script (plugin directory, legacy)
+def _find_db_path():
+    if os.environ.get("CATALOG_DB_PATH"):
+        return os.environ["CATALOG_DB_PATH"]
+    cwd_path = os.path.join(os.getcwd(), "catalog_vector_db")
+    if os.path.isdir(cwd_path):
+        return cwd_path
+    return os.path.join(os.path.dirname(__file__), "catalog_vector_db")
+
+DB_PATH = _find_db_path()
 COLLECTION_NAME = "products"
 HASH_STORE_PATH = os.path.join(DB_PATH, "product_hashes.json")
 
