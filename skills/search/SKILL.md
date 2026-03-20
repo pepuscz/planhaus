@@ -10,27 +10,20 @@ Semantic vector search across the product catalog database.
 
 ## Prerequisites
 
-The catalog database (`catalog_vector_db/` directory) must exist in the project folder. It is NOT included with the plugin — the user builds it from their own crawled product data.
+- **chromadb**: Install if not available (`pip install chromadb`)
+- **catalog_vector_db/**: Must exist in the project folder (not included with the plugin — user builds it from their own crawled product data)
+
+## Important: ChromaDB needs a writable filesystem with file locking
+
+ChromaDB uses SQLite internally, which requires write access and proper file locking. VirtioFS mounts (like the project directory in Cowork) do not support this. **Copy the database to the session's writable directory before querying.** Only needed once per session.
 
 ## Steps
 
-1. Install chromadb if not available:
+1. Find `catalog_vector_db/` in the project directory.
+2. Copy it to a writable location if running in a sandboxed VM (e.g., Cowork). The session root directory is writable.
+3. Run the query with `CATALOG_DB_PATH` pointing to the writable copy:
    ```bash
-   python3 -c "import chromadb" 2>/dev/null || pip install -q chromadb
-   ```
-
-2. Find the catalog database in the project directory:
-   ```bash
-   DB_PATH=$(find /sessions/*/mnt -name "catalog_vector_db" -type d 2>/dev/null | head -1)
-   if [ -z "$DB_PATH" ]; then
-     DB_PATH=$(find . -name "catalog_vector_db" -type d 2>/dev/null | head -1)
-   fi
-   ```
-   If not found, tell the user they need to build it first (see Notes below).
-
-3. Run the query:
-   ```bash
-   CATALOG_DB_PATH="$DB_PATH" python3 ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/query_catalog.py "<query>"
+   CATALOG_DB_PATH=<writable-db-path> python3 ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/query_catalog.py "<query>"
    ```
 
    Optional flags:
@@ -44,10 +37,9 @@ The catalog database (`catalog_vector_db/` directory) must exist in the project 
 
 ## Notes
 
-- The database includes a bundled ONNX embedding model for offline use — no network access needed at query time.
+- The database includes a bundled ONNX embedding model (`onnx_model/` inside the DB directory) for offline use — no network access needed at query time.
 - First query per session takes 30-60s to load the vector DB.
 - To build a new database (requires internet + crawled product data):
   ```bash
   python3 ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/catalog_vectordb.py build
   ```
-  This indexes products AND caches the embedding model for offline use.
