@@ -2,7 +2,7 @@
   "name": "planhaus",
   "version": "0.1.0",
   "description": "LLM-assisted interior design. Spatial reasoning, room geometry validation, product catalog search, 60-30-10 composition framework.",
-  "author": "Josef Gattermayer",
+  "author": { "name": "Josef Gattermayer" },
   "license": "MIT",
   "keywords": ["interior-design", "spatial", "furniture", "cowork", "architecture"]
 }
