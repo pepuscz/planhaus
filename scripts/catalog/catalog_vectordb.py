@@ -269,7 +269,8 @@ class CatalogVectorDB:
         _setup_onnx_model_path(db_path)
 
         # Initialize ChromaDB with persistent storage
-        os.makedirs(db_path, exist_ok=True)
+        if not os.path.isdir(db_path):
+            os.makedirs(db_path, exist_ok=True)
         self.client = chromadb.PersistentClient(path=db_path)
         
         # Get or create collection
