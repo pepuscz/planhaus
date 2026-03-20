@@ -2,7 +2,7 @@
 """
 Quick Catalog Query Tool
 ========================
-Simple interface for Cursor agent to query the product catalog.
+Simple interface to query the product catalog.
 
 Usage:
     python query_catalog.py "comfortable grey sofa"

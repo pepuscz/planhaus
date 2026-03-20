@@ -1,4 +1,4 @@
 # Requirements for catalog vector database
-# Install: pip install -r requirements_vectordb.txt
+# Install: pip install -r requirements.txt
 
 chromadb>=0.4.0

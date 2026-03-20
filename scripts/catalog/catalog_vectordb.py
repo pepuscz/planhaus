@@ -42,8 +42,8 @@ except ImportError:
 # Configuration
 # =============================================================================
 
-# Source catalogs (crawled data lives in MCP/crawl4ai, not copied here)
-CRAWL4AI_DIR = os.path.expanduser("~/Documents/MCP/crawl4ai")
+# Source catalogs — set CRAWL4AI_DIR env var to override default location
+CRAWL4AI_DIR = os.environ.get("CRAWL4AI_DIR", os.path.expanduser("~/Documents/MCP/crawl4ai"))
 
 CATALOG_CONFIGS = {
     "sweeek": {

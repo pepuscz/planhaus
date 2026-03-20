@@ -2,7 +2,7 @@
   "hooks": [
     {
       "event": "SessionStart",
-      "command": "python3 -c 'import yaml, matplotlib' 2>/dev/null || pip install -q -r ${CLAUDE_PLUGIN_ROOT}/scripts/requirements.txt"
+      "command": "python3 -c 'import importlib.util; exit(0 if importlib.util.find_spec(\"yaml\") and importlib.util.find_spec(\"matplotlib\") else 1)' 2>/dev/null || pip install -q -r ${CLAUDE_PLUGIN_ROOT}/scripts/requirements.txt"
     }
   ]
 }

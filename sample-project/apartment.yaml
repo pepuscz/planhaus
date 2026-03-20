@@ -58,10 +58,10 @@ layout:
 
     - rooms: [living-room, hall]
       shared_wall:
-        living-room: D-E
-        hall: C-D
+        living-room: C-D
+        hall: A-B
       connection: open
-      notes: "Open passage between hall and living room"
+      notes: "Open passage between hall and living room (via hall-entry opening)"
 
 # -----------------------------------------------------------
 # ROOMS

@@ -58,6 +58,7 @@ questions:
 # ============================================================================
 
 commands:
-  positions: "python tools/room_spatial.py <room>.yaml"
-  plot: "python tools/room_spatial.py <room>.yaml --plot <room>-floorplan.png"
-  view: "python tools/room_spatial.py <room>.yaml --view <x>,<y> --facing <dir>"
+  validate: "/planhaus:validate <room>"
+  render: "/planhaus:render <room>"
+  positions: "/planhaus:position <room>"
+  distances: "/planhaus:position <room> --matrix"
