@@ -3,6 +3,10 @@
     {
       "event": "SessionStart",
       "command": "python3 -c 'import importlib.util; exit(0 if importlib.util.find_spec(\"yaml\") and importlib.util.find_spec(\"matplotlib\") else 1)' 2>/dev/null || pip install -q -r ${CLAUDE_PLUGIN_ROOT}/scripts/requirements.txt"
+    },
+    {
+      "event": "SessionStart",
+      "command": "diff -q ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/requirements-mcp.txt ${CLAUDE_PLUGIN_DATA}/lib/.stamp >/dev/null 2>&1 || (mkdir -p ${CLAUDE_PLUGIN_DATA}/lib && pip3 install -q --target ${CLAUDE_PLUGIN_DATA}/lib -r ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/requirements-mcp.txt && cp ${CLAUDE_PLUGIN_ROOT}/scripts/catalog/requirements-mcp.txt ${CLAUDE_PLUGIN_DATA}/lib/.stamp)"
     }
   ]
 }

@@ -10,7 +10,8 @@ Cowork plugin for interior design. Repo = the plugin itself (not a project using
 - `templates/CLAUDE.md` — design rules injected into user projects (not this file)
 - `sample-project/` — demo project ("Casa Sol"), used for testing skills
 - `.claude-plugin/` — plugin.json (manifest) + marketplace.json (for Cowork install)
-- `hooks/hooks.json` — SessionStart auto-installs pyyaml + matplotlib
+- `hooks/hooks.json` — SessionStart auto-installs pyyaml + matplotlib (VM) and chromadb + mcp (host)
+- `.mcp.json` — MCP server config: `planhaus-catalog` runs on host, exposes `catalog_search` and `catalog_stats`
 
 ## Key conventions
 

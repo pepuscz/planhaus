@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "planhaus-catalog": {
+      "command": "python3",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/catalog/mcp_server.py"],
+      "env": {
+        "PYTHONPATH": "${CLAUDE_PLUGIN_DATA}/lib:${CLAUDE_PLUGIN_ROOT}/scripts/catalog"
+      }
+    }
+  }
+}
