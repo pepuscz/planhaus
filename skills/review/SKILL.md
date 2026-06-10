@@ -1,44 +1,60 @@
 ---
 name: review
-description: Run design integration checklist for a room or the whole apartment
-args: "<room-name|apartment>"
+description: Adversarial design review of a room or the whole apartment against the design checklist — verdict per item with evidence and rule IDs
+argument-hint: "<room-name|apartment>"
+when_to_use: At the end of a design phase, after major layout or FF&E changes, or when the user asks "is this good?" — runs as a forked design-reviewer critique.
+context: fork
+agent: planhaus:design-reviewer
+allowed-tools: Bash(python3:*)
 ---
 
 # Design Review
 
-Assess design coherence using the integration checklist.
+You are reviewing this project as an adversarial design critic. Your job is to find what's
+wrong — never rubber-stamp. The instructions below stand alone: follow them whether you are
+running as the forked `design-reviewer` agent or inline in the main session.
+
+## Inputs
+
+1. **Checklist**: prefer the project's own `design-checklist.yaml`; if absent, fall back to
+   `"${CLAUDE_PLUGIN_ROOT}/templates/design-checklist.yaml"`. Use its numeric thresholds where
+   given (e.g. density metric, 3–5 material count).
+2. **Concept**: `concept.yaml` (if present) and `brief.yaml`.
+3. **Rooms**: `rooms/<room>.yaml` for the target room, or `apartment.yaml` + all room files for
+   an apartment review. Registry items referenced by the rooms.
+4. **Floorplans**: read the `rooms/<room>-floorplan.png` images — judge what the plan *looks*
+   like, not just the numbers.
 
 ## Steps
 
-1. Read the design checklist:
+1. **Re-run the spatial check yourself** — do not trust stale validation notes. Call the script
+   directly (never invoke other skills via slash-command syntax):
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/room_spatial.py" rooms/<room-name>.yaml --check
    ```
-   ${CLAUDE_PLUGIN_ROOT}/templates/design-checklist.yaml
-   ```
+   For an apartment review, run it for every room. Use `--matrix` when you need distances as
+   evidence.
 
-2. If reviewing a **single room** (`/planhaus:review living-room`):
-   - Read `rooms/<room-name>.yaml`
-   - Read the room's registry items
-   - Run `/planhaus:position <room> --matrix` to get distances
-   - Assess each `per_room` checklist item:
-     - **Density**: Calculate floor coverage (furniture footprint / room area)
-     - **Focal point**: Is there one clear visual anchor?
-     - **Flow**: Are circulation paths clear (60-80cm minimum)?
-     - **Light**: Sufficient lighting for the room's purpose?
-     - **Breathing room**: Do key pieces have space around them?
+2. **Single room** (`/planhaus:review living-room`): assess each `per_room` checklist item —
+   density (compute the floor-coverage metric), focal point, flow, light, breathing room.
 
-3. If reviewing the **apartment** (`/planhaus:review apartment`):
-   - Read `apartment.yaml` and all room files
-   - Assess `per_apartment` checklist items:
-     - **Material palette**: Count unique materials (aim for 3-5 main ones)
-     - **Transitions**: Do adjacent rooms feel connected?
-     - **Sightlines**: What's visible through openings?
-     - **Style thread**: Is there a clear identity matching the brief?
-     - **Hierarchy**: Does design emphasis match room importance?
+3. **Apartment** (`/planhaus:review apartment`): assess each `per_apartment` item — material
+   palette (count unique materials), transitions, sightlines, style thread, hierarchy.
 
-4. End with the reflective questions from the checklist.
+4. **Concept coherence**: check that what's actually placed and registered follows
+   `concept.yaml` — palette roles (60-30-10), master material list, style signals, avoid-list,
+   room hierarchy vs design emphasis. Flag every divergence from the brief's stated direction.
+
+5. **Verdict per checklist item**: `pass` / `warn` / `fail`, each with concrete evidence —
+   positions, measurements, rule IDs (e.g. "fail — WARN CIRC-02: sofa→dining route 62cm,
+   ideal 75cm"). No verdict without evidence.
+
+6. Separate findings into three sections: **violations** (rule/threshold failures),
+   **judgment concerns** (subjective but specific), **what works** (kept short). End with the
+   checklist's reflective questions and your overall verdict.
 
 ## Notes
 
-- Review is qualitative design judgment, not just tool output.
-- Reference specific items, positions, and measurements in your assessment.
-- Flag conflicts and suggest specific improvements.
+- Accepted WARNs documented in room notes are not violations — verify the note exists, then
+  treat them as recorded trade-offs.
+- Old projects without `concept.yaml`/zones still get a review — skip those checks and say so.

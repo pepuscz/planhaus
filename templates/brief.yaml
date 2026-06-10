@@ -55,20 +55,25 @@ priorities: |
   -
   # Examples: wow moment; spacious feeling; TV optional
 
-budget: |
-  Quality level:
-  # e.g., “Not IKEA; Zara Home / Kave Home baseline; splurge on 1–2 hero pieces”
-  #
-  # Example:
-  # Mid-range baseline + 1–2 investment pieces; spend on sofa + lighting.
-  
-  Where to splurge:
-  -
-  # Examples: sofa; lighting; one signature piece
-  
-  Where to save:
-  -
-  # Examples: side tables; basic storage; accessories
+budget:
+  total:          # NUMERIC total for furnishing, e.g., 25000
+                  # /planhaus:concept derives the tier allocation (anchor/supporting/accent)
+                  # and per-room budgets from this number — get a real figure, even a range midpoint.
+  currency: ""    # e.g., EUR / CZK / USD
+  notes: |
+    Quality level:
+    # e.g., “Not IKEA; Zara Home / Kave Home baseline; splurge on 1–2 hero pieces”
+    #
+    # Example:
+    # Mid-range baseline + 1–2 investment pieces; spend on sofa + lighting.
+
+    Where to splurge:
+    -
+    # Examples: sofa; lighting; one signature piece
+
+    Where to save:
+    -
+    # Examples: side tables; basic storage; accessories
 
 constraints: |
   Things we can't change:

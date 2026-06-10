@@ -4,7 +4,8 @@
       "command": "python3",
       "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/catalog/mcp_server.py"],
       "env": {
-        "PYTHONPATH": "${CLAUDE_PLUGIN_DATA}/lib:${CLAUDE_PLUGIN_ROOT}/scripts/catalog"
+        "PYTHONPATH": "${CLAUDE_PLUGIN_DATA}/lib:${CLAUDE_PLUGIN_ROOT}/scripts/catalog",
+        "CATALOG_DB_PATH": "${user_config.catalog_db_path}"
       }
     }
   }

@@ -1,8 +1,18 @@
 {
   "name": "planhaus",
-  "version": "0.2.0",
-  "description": "LLM-assisted interior design. Spatial reasoning, room geometry validation, product catalog search, 60-30-10 composition framework.",
+  "version": "1.0.0",
+  "displayName": "planhaus",
+  "description": "Interior-design copilot that follows the professional design process: brief → concept → zoning → circulation → layout → FF&E selection → lighting → review. Spatial reasoning with a cited clearance rules engine, room geometry validation, floorplan rendering, product catalog search, and 60-30-10 composition discipline.",
   "author": { "name": "Josef Gattermayer" },
   "license": "MIT",
-  "keywords": ["interior-design", "spatial", "furniture", "cowork", "architecture"]
+  "homepage": "https://github.com/pepuscz/planhaus",
+  "repository": "https://github.com/pepuscz/planhaus",
+  "keywords": ["interior-design", "spatial", "furniture", "cowork", "claude-desktop", "architecture"],
+  "userConfig": {
+    "catalog_db_path": {
+      "type": "string",
+      "required": false,
+      "description": "Absolute path to your catalog_vector_db/ directory (host). Leave empty if you don't use catalog search."
+    }
+  }
 }

@@ -1,3 +1,29 @@
+# Design Process
+
+Nine phases, in order. Each produces a checkable artifact; on hard failure you loop back
+one phase (the back-edge) — never patch forward.
+
+| # | Phase | Skill | Artifact | Back-edge (on failure) |
+|---|-------|-------|----------|------------------------|
+| 0 | Scaffold & setup | `/planhaus:new-project`, `/planhaus:setup` | project skeleton, deps | — |
+| 1 | Programming | `/planhaus:brief` + measurement (below) | `brief.yaml` (numeric budget total), validated room geometry | re-measure: area mismatch = wrong shape |
+| 2 | Concept | `/planhaus:concept` | `concept.yaml` + per-room `design:` blocks | back to brief: unanswered intake questions |
+| 3 | Zoning | `/planhaus:zone` | `zones:` + `focal_point:` in room YAML | back to concept: room can't serve its program |
+| 4 | Circulation | `/planhaus:zone` | `circulation:` routes (CIRC-01/02) in room YAML | back to zoning: routes don't fit between zones |
+| 5 | Layout | `/planhaus:furnish` | furniture placed inside zones, `--check` clean | back to zoning: hard clearance ERROR → revise the zone map, not the offset |
+| 6 | FF&E selection | `/planhaus:select` | registry entries per slot (gated + scored top-3) | back to layout: nothing fits the slot envelope |
+| 7 | Lighting | `/planhaus:light` | per-zone 3-layer lighting plan in room YAML | back to layout: no surface/outlet for a needed layer |
+| 8 | Review | `/planhaus:review` | checklist report (pass/warn/fail + evidence, rule IDs) | back to the failing phase |
+
+Support skills run at any phase: `/planhaus:validate`, `/planhaus:render`, `/planhaus:position`
+(facts + rule IDs), and `/planhaus:search` / `/planhaus:add-item` / `/planhaus:enrich-catalog`
+(catalog & registry utilities).
+
+The rest of this file is the **measurement part of phase 1** — collecting and validating
+the geometry that everything else depends on.
+
+---
+
 # Data Collection
 
 ## Phase 1: From Plans (Remote)
