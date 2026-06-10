@@ -2,9 +2,12 @@
 
 name: "Kave Home Lenon Bed Frame 160x200"
 url: "https://kavehome.com/es/en/lenon-bed-160"
-price: 799 EUR
+price: 799
+currency: EUR
 
 status: shortlisted
+
+category: bed
 
 dimensions:
   width: 173
@@ -16,7 +19,10 @@ mass: 45
 materials: [solid oak, oak veneer headboard]
 colors: [natural oak]
 finish: "matte lacquer"
-style: "warm modern"
+style: [scandinavian, modern]
+
+palette_role: secondary
+visual_weight: heavy
 
 description: |
   Platform bed frame with solid oak legs and slatted headboard.
@@ -29,5 +35,4 @@ description: |
 image: ""
 
 notes: |
-  Headboard acts as focal point per design intent.
-  Oak tone coordinates with coffee table walnut (same family, lighter).
+  Lenon series; also available in 180x200. Slats included, mattress not.

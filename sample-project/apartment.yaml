@@ -39,14 +39,15 @@ specifications: |
 layout:
   ascii: |
     N
-    ↑   +-----------+--------+
-        |           |bedroom |
-        | living    |        |
-        | room      +--+  +--+
-        |           |hall|
-        |    +------+----+
-        |    |kitchen     |
-        +----+------------+
+    ↑   +-----------+---------+
+        |  bedroom  |  bath*  |
+        +----+------+---------+
+        |hall|                |
+        +----+  living room   |
+        |        + kitchen    |
+        +==========+----------+
+          balcony (south)
+    # * bathroom + entry corridor not modeled in this demo
 
   adjacencies:
     - rooms: [living-room, bedroom]
@@ -54,14 +55,23 @@ layout:
         living-room: C-D
         bedroom: A-B
       thickness: 12
-      notes: "Living room north wall = bedroom south wall"
+      notes: "Living room north wall C-D = bedroom south wall A-B along the bedroom's eastern 200cm (bedroom spans the hall + the living room's western part)"
 
     - rooms: [living-room, hall]
       shared_wall:
-        living-room: C-D
-        hall: A-B
-      connection: open
-      notes: "Open passage between hall and living room (via hall-entry opening)"
+        living-room: D-E
+        hall: east wall
+      connection: door
+      thickness: 10
+      notes: "The hall is the 160x140cm notch in the living room's NW corner; hall-entry (80cm door on wall D-E) connects them"
+
+    - rooms: [bedroom, hall]
+      shared_wall:
+        bedroom: A-B
+        hall: north wall
+      connection: door
+      thickness: 12
+      notes: "Bedroom door (bedroom-door, SW corner of A-B) opens from the hall"
 
 # -----------------------------------------------------------
 # ROOMS
@@ -75,3 +85,11 @@ rooms:
   - id: bedroom
     file: rooms/bedroom.yaml
     area_m2: 12.5
+
+  # Minimal connector — referenced by hall-entry (living room) and
+  # bedroom-door. Entry vestibule with the apartment front door; no room
+  # file (nothing to design). Bathroom and remaining circulation make up
+  # the rest of the 58 m² and are not modeled in this demo.
+  - id: hall
+    file: null
+    area_m2: 2.2

@@ -65,62 +65,105 @@ openings:
 outlets:
   - id: outlet-bed-left
     wall: C-D
-    position: 260
+    position: 300   # x=60, behind the left nightstand
     height: 30
     type: double
 
   - id: outlet-bed-right
-    wall: A-B
-    position: 260
+    wall: C-D
+    position: 60    # x=300, behind the right nightstand
     height: 30
     type: double
 
 heating: []
 plumbing: []
 
+# ----------------------------------------------------------------------------
+# ZONING & CIRCULATION
+# ----------------------------------------------------------------------------
+
+zones:
+  - id: sleeping
+    purpose: "Sleep and reading — the room's single job"
+    anchor: bed
+    bounds: { x: [25, 335], y: [125, 350] }
+    lighting: [task, accent]
+
+  - id: dressing
+    purpose: "Planned wardrobe wall east of the door (piece not yet selected)"
+    anchor: wardrobe
+    bounds: { x: [170, 360], y: [0, 80] }
+    lighting: [ambient]
+
+focal_point:
+  ref: bed
+  why: "The wide oak headboard is the first thing seen from the door — the brief invests in bedding, not accessories."
+
+# Single-opening room: there are no door-to-door routes for the engine to
+# measure (declared routes need openings/doors at both ends). The door→window
+# path runs past the foot of the bed and is covered by BED-02.
+circulation: []
+
+sightlines:
+  - from: bedroom-door
+    toward: focal_point
+    keep_clear: true
+
 lighting:
   - id: bedside-left
     position:
       wall: [C-D, D-A]
-      offset: [55, 55]
+      offset: [30, 60]
     ceiling: null
     mount: table
+    layer: task
+    color_temp_k: 2700
+    lumens: 400
     fixture: registry/furniture/table-lamp.yaml
-    why: "Warm light for reading, on nightstand"
+    why: "Reading light at pillow height — the brief asks for warm bedside light and no overhead."
 
   - id: bedside-right
     position:
       wall: [B-C, C-D]
-      offset: [70, 55]
+      offset: [60, 30]
     ceiling: null
     mount: table
+    layer: task
+    color_temp_k: 2700
+    lumens: 400
     fixture: registry/furniture/table-lamp.yaml
-    why: "Matching pair for symmetry"
+    why: "Matching pair keeps the headboard wall symmetric — calm, hotel-like."
 
 furniture:
   - id: bed
     registry: registry/furniture/bed.yaml
+    type: bed
+    zone: sleeping
     position:
       wall: [D-A, C-D]
-      offset: [94, 100]
+      offset: [94, 0]
     facing: south
-    why: "Headboard against north wall, centered, facing door"
+    why: "Headboard flush to the solid north wall, centered between the nightstands — protected position facing the door, window light left unblocked."
 
   - id: nightstand-left
     registry: registry/furniture/nightstand.yaml
+    type: nightstand
+    zone: sleeping
     position:
       wall: [C-D, D-A]
-      offset: [55, 35]
+      offset: [50, 35]
     orientation: E-W
-    why: "Left of bed, near west wall"
+    why: "Arm's reach from the pillow; lamp + one book — surfaces stay clear per the brief."
 
   - id: nightstand-right
     registry: registry/furniture/nightstand.yaml
+    type: nightstand
+    zone: sleeping
     position:
       wall: [B-C, C-D]
-      offset: [85, 55]
+      offset: [85, 50]
     orientation: E-W
-    why: "Right of bed, near east wall"
+    why: "Mirrors the left nightstand for symmetry at the headboard wall."
 
 accessories:
   - id: bedroom-rug
@@ -134,6 +177,10 @@ accessories:
     notes: "Linen curtains, natural color + blackout liner"
 
 notes: |
-  Simple rectangular room. Bed centered on north wall with nightstands flanking.
-  East-facing window provides gentle morning light.
-  Door at SE corner to hall.
+  Simple rectangular room. Bed headboard flush to the north wall, nightstands
+  flanking tight to the frame (~9cm — deliberate, reach from the pillow).
+  Foot of the bed keeps 137cm to the south wall, so the door→window passage
+  clears BED-02 with room to spare; each bed side keeps ~93cm.
+  East-facing window provides gentle morning light; its approach stays clear.
+  Door at the SW corner opens from the hall; the SE corner is reserved for a
+  future wardrobe (dressing zone) clear of the door swing and window.

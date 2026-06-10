@@ -2,9 +2,12 @@
 
 name: "Kave Home Blok 3-Seater Sofa"
 url: "https://kavehome.com/es/en/blok-3-seater"
-price: 1290 EUR
+price: 1290
+currency: EUR
 
 status: shortlisted
+
+category: sofa
 
 dimensions:
   width: 240
@@ -12,20 +15,21 @@ dimensions:
   height: 69
 
 mass: 65
+seat_height: 42
 
 materials: [solid beech frame, high-resilience foam, linen upholstery]
 colors: [beige]
 finish: "matte"
-style: "warm modern"
+style: [modern, mediterranean]
+
+palette_role: dominant
+visual_weight: medium
 
 description: |
   Low-profile 3-seater with generous depth. Clean lines softened by
   rounded arm rests. Solid beech legs (natural finish, 12cm). Linen
   cover in warm beige — removable and washable. Firm seat with
   high-resilience foam, relaxed but supportive.
-
-  Visual weight: medium. Reads as a quiet anchor piece, not a
-  statement. Works as a 60% element in the palette.
 
 image: ""
 
