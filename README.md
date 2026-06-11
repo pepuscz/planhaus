@@ -46,7 +46,7 @@ Or for local development: `claude --plugin-dir .`
 8. `/planhaus:light living-room` — ambient/task/accent lighting plan
 9. `/planhaus:review apartment` — adversarial design review
 
-## Skills (15)
+## Skills (16)
 
 | Skill | Phase | Purpose |
 |-------|-------|---------|
@@ -65,6 +65,7 @@ Or for local development: `claude --plugin-dir .`
 | `/planhaus:search` | util | Direct catalog queries (full filter set) |
 | `/planhaus:add-item` | util | Add a product to the registry (objective specs only) |
 | `/planhaus:enrich-catalog` | util | LLM style/metadata enrichment of the catalog DB |
+| `/planhaus:migrate` | util | Upgrade a pre-1.0 project: refresh docs, upgrade schemas, derive concept/zones, triage rule findings |
 
 ## Agents
 
@@ -114,6 +115,16 @@ color family, material, rating, source. Selection (`/planhaus:select`) goes furt
    ergonomics 10, quality signals 10, budget fit 10 — each with a one-line justification.
 4. **Output** — top 3 per slot with per-criterion scores and one trade-off sentence each.
    Embedding similarity is never presented as a quality score.
+
+## Upgrading from 0.x
+
+Existing projects keep working without changes — all new fields are optional, and the
+tools report missing data as `SKIP`, never as an error. To actually adopt the 1.0
+workflow, run `/planhaus:migrate <project>`: it backs up the project, refreshes the
+stale injected docs, upgrades schemas, then **derives** the concept and zones your
+existing layout implies and triages what the rules engine finds (move-to-fix vs
+documented known issue vs accepted trade-off). A v1 catalog DB needs one
+`catalog_vectordb.py build --force`.
 
 ## Sample project
 

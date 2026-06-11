@@ -38,7 +38,7 @@ planhaus/
 │   ├── space-planner.md           # zoning + layout alternatives
 │   ├── furniture-curator.md       # gate+score candidate evaluation
 │   └── design-reviewer.md         # adversarial design critique
-├── skills/                        # 15 skills (see table)
+├── skills/                        # 16 skills (see table)
 ├── scripts/
 │   ├── room_spatial.py            # + argparse, --json, --check rules engine
 │   ├── rules/clearances.yaml      # canonical, cited, severity-tiered rules
@@ -47,7 +47,7 @@ planhaus/
 └── sample-project/                # Casa Sol — exemplary, passes its own validation
 ```
 
-## Skills (15)
+## Skills (16)
 
 | Skill | Phase | New? | Responsibility |
 |---|---|---|---|
@@ -66,6 +66,7 @@ planhaus/
 | `search` | util | upgraded | Thin catalog access manual (full filter set); points to `select` for design work |
 | `add-item` | util | upgraded | Registry entry with extended schema (category, style tags, palette_role…) |
 | `enrich-catalog` | util | **new** | LLM style/metadata enrichment of catalog DB via export/import CLI |
+| `migrate` | util | **new** | Upgrade a pre-1.0 project: refresh injected docs, upgrade schemas, derive concept/zones retroactively, triage rule findings |
 
 ### Frontmatter conventions (all skills)
 
@@ -346,6 +347,34 @@ repository, keywords`, and `userConfig`:
   concept.yaml); add new registry fields to all 10 items.
 - Regenerate floorplan PNGs; `--check` must produce zero ERRORs (document any WARNs as accepted
   trade-offs in room notes).
+
+## Migration (0.x → 1.0)
+
+Old projects keep working untouched — that is the tolerance principle above. Beyond
+tolerance, `/planhaus:migrate` provides the guided scenario, modeled on the Casa Sol
+rebuild. It is **re-thinking, not re-formatting**:
+
+1. **Inventory & mode** — detect 0.x markers; classify the project as *paper* (nothing
+   bought → full re-think allowed) or *furnished home* (purchased/installed items →
+   derive, don't redesign; moves are free, replacements are flagged costs). Back up first.
+2. **Refresh injected docs** — the project's CLAUDE.md / design-checklist.yaml /
+   workflow.md were copied at scaffold time and carry pre-1.0 doctrine (hardcoded
+   clearance numbers, no phase discipline). Replace if unedited, merge if edited — never
+   drop user text.
+3. **Mechanical schema upgrade** — brief `budget:` prose → `{total, currency, notes}`;
+   registry `category`/`currency`/`style` list; `type:` on furniture; `screen_diagonal_in`
+   / `hang_height_cm` from real product data (turns SKIPs into checks).
+4. **Re-think** — derive `concept.yaml` and per-room zones/focal point/circulation from
+   the *existing* layout and purchases (reverse-engineering mode: contradictions between
+   brief and reality are findings for the user, not things to paper over); then run
+   `--check` and triage: fixable-by-moving → propose the move; baked-into-a-purchase →
+   documented known issue with remediation cost; WARN → accept-with-note or fix.
+5. **Report** — backup location, doc/schema changes, derived concept, findings triage
+   table, next steps.
+
+The catalog DB migrates separately: incremental `build` refuses to stamp v2 over a v1
+database and instructs `build --force`; the MCP tools return rebuild warnings/errors when
+they detect a v1 stamp.
 
 ## Versioning & release
 

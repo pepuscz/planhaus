@@ -24,6 +24,7 @@ Each phase produces a checkable artifact and loops back one phase on hard failur
 | 7 Review | `/planhaus:review` | checklist report with evidence |
 | any | `/planhaus:validate`, `/planhaus:render`, `/planhaus:position` | geometry + rules + floorplan |
 | util | `/planhaus:search`, `/planhaus:add-item`, `/planhaus:enrich-catalog` | catalog/registry maintenance |
+| util | `/planhaus:migrate` | upgrade a pre-1.0 project to this format |
 
 ## Numeric Rules
 

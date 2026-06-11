@@ -13,7 +13,8 @@ to furniture placement. See `docs/architecture.md` for the full contract.
 
 ### Added
 
-- Skills: `brief`, `concept`, `zone`, `furnish`, `select`, `light`, `enrich-catalog` (8 → 15 skills).
+- Skills: `brief`, `concept`, `zone`, `furnish`, `select`, `light`, `enrich-catalog`,
+  `migrate` (8 → 16 skills).
 - Agents (`agents/`): `design-researcher`, `space-planner`, `furniture-curator`,
   `design-reviewer` (forked by `/planhaus:review`).
 - Rules engine: canonical, severity-tiered clearance table `scripts/rules/clearances.yaml`

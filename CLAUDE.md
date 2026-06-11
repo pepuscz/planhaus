@@ -5,7 +5,7 @@ Cowork/Claude Code plugin for interior design. Repo = the plugin itself (not a p
 ## Structure
 
 - `docs/architecture.md` — single source of truth for schemas, rule IDs, skill contracts. Read it before changing anything.
-- `skills/*/SKILL.md` — 15 skills, invoked as `/planhaus:<name>` (phases: brief → concept → zone → furnish → select → light → review, plus validate/render/position/search/add-item/enrich-catalog/new-project/setup)
+- `skills/*/SKILL.md` — 16 skills, invoked as `/planhaus:<name>` (phases: brief → concept → zone → furnish → select → light → review, plus validate/render/position/search/add-item/enrich-catalog/migrate/new-project/setup)
 - `agents/*.md` — 4 subagents: design-researcher, space-planner, furniture-curator, design-reviewer (fork target of `review`)
 - `scripts/` — Python CLI tools (room_spatial.py, catalog/). Standalone, no code changes needed for plugin use.
 - `scripts/rules/clearances.yaml` — canonical numeric rule table (CIRC-01, SEAT-01, …); the ONLY place clearance numbers live
