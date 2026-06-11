@@ -45,7 +45,8 @@ and the metadata fields above. Similarity is retrieval relevance, not product qu
 
 ## `catalog_get`
 
-- **ids** (required): list of product ids (from search results)
+- **ids** (required): list of product ids (from search results), max 20 per call —
+  batch larger shortlists
 - **db_path** (optional): same resolution as above
 
 Returns full product data for the given ids — use after search to judge a shortlist from

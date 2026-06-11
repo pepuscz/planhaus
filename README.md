@@ -93,12 +93,14 @@ ERRORs block and prompt the agent to fix them; WARNs surface as context.
 
 ## Catalog & multi-criteria selection (optional)
 
-The plugin ships catalog tooling but no product data — build your own DB from scraped
-sources, then point the plugin at it (`catalog_db_path` plugin setting, or `CATALOG_DB_PATH`).
+The plugin ships catalog tooling but no product data — build your own DB from crawled
+catalogs, then point the plugin at it (`catalog_db_path` plugin setting, or `CATALOG_DB_PATH`).
+`build` reads `{CRAWL4AI_DIR}/<retailer>_catalog/catalog_llm.json` for the supported
+retailers (sweeek, kavehome, zarahome):
 
 ```bash
 pip install -r scripts/catalog/requirements.txt
-python scripts/catalog/catalog_vectordb.py build --source <data.json>
+CRAWL4AI_DIR=/path/to/crawls python scripts/catalog/catalog_vectordb.py build   # --force to rebuild
 ```
 
 Search is semantic (embeddings) plus hard filters: price, dimensions, category, style,

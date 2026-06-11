@@ -11,6 +11,7 @@
   "userConfig": {
     "catalog_db_path": {
       "type": "string",
+      "title": "Catalog database path",
       "required": false,
       "description": "Absolute path to your catalog_vector_db/ directory (host). Leave empty if you don't use catalog search."
     }

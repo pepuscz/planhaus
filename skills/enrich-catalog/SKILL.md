@@ -47,9 +47,11 @@ local Claude Code on that host machine instead.
    ```json
    {"id": "...", "style": "japandi"}
    {"id": "...", "style": "midcentury", "color_family": "natural_wood"}
-   {"id": "...", "style": ""}
+   {"id": "...", "style": "", "color_family": "beige"}
    ```
-   Optional override keys: `color_family`, `primary_material`, `leg_style`.
+   Optional override keys: `color_family`, `primary_material`. An empty `style` leaves the
+   style unset (deliberately unclassified) while still applying the other overrides; for
+   products with nothing to change, omit the line entirely.
 
 5. **Import**:
    ```bash

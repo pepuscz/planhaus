@@ -47,11 +47,12 @@ def _ensure_deps():
         if result.returncode != 0:
             raise RuntimeError((result.stderr or result.stdout or "pip failed").strip()[-800:])
     except Exception as e:
+        # stderr: stdout is the MCP stdio protocol channel
         print(json.dumps({
             "error": "Failed to install catalog dependencies (chromadb, mcp)",
             "detail": str(e)[:800],
             "hint": f"Install manually: {sys.executable} -m pip install --target '{lib_path}' chromadb mcp",
-        }))
+        }), file=sys.stderr)
         sys.exit(1)
 
 
@@ -64,7 +65,7 @@ except ImportError as e:
         "error": "MCP SDK not available",
         "detail": str(e),
         "hint": f"Install manually: {sys.executable} -m pip install mcp chromadb",
-    }))
+    }), file=sys.stderr)
     sys.exit(1)
 
 # Lazy-import catalog_vectordb (PYTHONPATH includes the scripts/catalog dir)
@@ -109,6 +110,20 @@ def _get_db_or_error(db_path: str | None):
         from catalog_vectordb import CatalogVectorDB
         _db_cache[resolved] = CatalogVectorDB(db_path=resolved)
     return _db_cache[resolved], None
+
+
+def _db_is_current(db) -> bool:
+    """True when the DB carries the current v2 metadata stamp."""
+    try:
+        import catalog_vectordb
+        return db._read_db_version() >= catalog_vectordb.DB_VERSION
+    except Exception:
+        return True  # never let the version probe break a query
+
+
+_REBUILD_HINT = ("catalog DB predates v2 — category/style/color/material/dimension "
+                 "filters match nothing and similarity values are unreliable until "
+                 "you rebuild: python catalog_vectordb.py build --force")
 
 
 def _extract_image_urls(full_product: dict) -> list[str]:
@@ -222,6 +237,21 @@ def catalog_search(
     if db.collection.count() == 0:
         return json.dumps({"error": "Database is empty. Build it first with: python catalog_vectordb.py build"})
 
+    # A pre-v2 DB has none of the enriched metadata: refuse filtered queries
+    # loudly instead of returning a silent empty array.
+    if not _db_is_current(db):
+        if any(f is not None for f in (category, style, color_family, material,
+                                       max_width, max_depth, max_height)):
+            return json.dumps({"error": _REBUILD_HINT})
+        results = db.query(query_text=query, n_results=n, source=source,
+                           max_price=max_price, min_price=min_price,
+                           min_rating=min_rating)
+        for r in results:
+            full = r.pop("full_product", {})
+            r["image_urls"] = _extract_image_urls(full)
+        return json.dumps({"warning": _REBUILD_HINT, "results": results},
+                          ensure_ascii=False)
+
     results = db.query(
         query_text=query,
         n_results=n,
@@ -250,7 +280,7 @@ def catalog_search(
 
 @mcp_server.tool()
 def catalog_get(ids: list[str], db_path: str | None = None) -> str:
-    """Get full product data for shortlisted catalog items (up to 10 ids).
+    """Get full product data for shortlisted catalog items (up to 20 ids).
 
     Use after catalog_search to judge candidates from rich data (descriptions,
     specifications, all variants) without re-querying. Returns a JSON object
@@ -258,7 +288,7 @@ def catalog_get(ids: list[str], db_path: str | None = None) -> str:
     "missing_ids" for ids not found.
 
     Args:
-        ids: Product ids from catalog_search results (max 10 per call)
+        ids: Product ids from catalog_search results (max 20 per call; batch larger shortlists)
         db_path: Absolute path to the catalog_vector_db/ directory on the host.
             Optional — falls back to CATALOG_DB_PATH env, then ./catalog_vector_db.
     """
@@ -269,10 +299,16 @@ def catalog_get(ids: list[str], db_path: str | None = None) -> str:
     if not ids:
         return json.dumps({"error": "No ids given"})
 
-    truncated = len(ids) > 10
-    ids = ids[:10]
+    ids = [i for i in dict.fromkeys(ids) if i]  # dedupe (chromadb rejects dups)
+    if not ids:
+        return json.dumps({"error": "No valid ids given"})
+    truncated = len(ids) > 20
+    ids = ids[:20]
 
-    res = db.collection.get(ids=ids, include=["metadatas"])
+    try:
+        res = db.collection.get(ids=ids, include=["metadatas"])
+    except Exception as e:
+        return json.dumps({"error": f"catalog_get failed: {str(e)[:300]}"})
     found_ids = res.get("ids") or []
     metas = res.get("metadatas") or []
 
@@ -307,7 +343,7 @@ def catalog_get(ids: list[str], db_path: str | None = None) -> str:
     missing = [pid for pid in ids if pid not in set(found_ids)]
     out = {"products": products, "missing_ids": missing}
     if truncated:
-        out["note"] = "ids list truncated to the first 10"
+        out["note"] = "ids list truncated to the first 20"
     return json.dumps(out, ensure_ascii=False)
 
 
@@ -328,6 +364,8 @@ def catalog_stats(db_path: str | None = None) -> str:
         return err
 
     stats = db.stats()
+    if not _db_is_current(db):
+        stats["warning"] = _REBUILD_HINT
 
     metas = _collect_metadatas(db.collection)
     prices = sorted(

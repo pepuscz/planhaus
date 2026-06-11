@@ -435,7 +435,7 @@ def validate_objects(objects, corners, room):
     
     # Build room polygon from corners in wall order (traced correctly)
     room_polygon = []
-    walls = room.get('walls', [])
+    walls = room.get('walls') or []
     if walls:
         # Get corner order from wall IDs
         for wall in walls:
@@ -515,7 +515,7 @@ def get_objects(room, corners, room_path=None):
     objects = []
     
     # Built-ins
-    for item in room.get('built_ins', []):
+    for item in room.get('built_ins') or []:
         if 'position' in item and isinstance(item['position'], dict):
             pos = resolve_position(item['position'], corners, item.get('id'))
             dims = item.get('dimensions', {})
@@ -614,7 +614,7 @@ def get_objects(room, corners, room_path=None):
             })
     
     # Lighting (ceiling fixtures - point objects, no bbox)
-    for item in room.get('lighting', []):
+    for item in room.get('lighting') or []:
         pos = resolve_position(item.get('position'), corners, item.get('id'))
         if pos:
             objects.append({
@@ -631,7 +631,7 @@ def get_objects(room, corners, room_path=None):
             })
     
     # Furniture (with registry lookup for dimensions and mass)
-    for item in room.get('furniture', []):
+    for item in room.get('furniture') or []:
         pos = resolve_position(item.get('position'), corners, item.get('id'))
         if pos:
             # Get dimensions and mass from registry or inline
@@ -717,7 +717,7 @@ def get_objects(room, corners, room_path=None):
             })
     
     # Windows
-    for item in room.get('windows', []):
+    for item in room.get('windows') or []:
         if 'wall' not in item or 'position' not in item:
             # Skip incomplete windows (notes-only entries)
             continue
@@ -745,7 +745,7 @@ def get_objects(room, corners, room_path=None):
         })
     
     # Outlets
-    for item in room.get('outlets', []):
+    for item in room.get('outlets') or []:
         if 'wall' not in item or 'position' not in item:
             # Skip incomplete outlets
             continue
@@ -770,7 +770,7 @@ def get_objects(room, corners, room_path=None):
         })
     
     # Openings (passages between rooms)
-    for item in room.get('openings', []):
+    for item in room.get('openings') or []:
         if 'wall' not in item or 'position' not in item:
             # Skip incomplete openings (notes-only entries)
             continue
@@ -824,7 +824,7 @@ def get_objects(room, corners, room_path=None):
             })
     
     # Plumbing
-    for item in room.get('plumbing', []):
+    for item in room.get('plumbing') or []:
         if 'wall' in item and 'position' in item:
             wall_id = item['wall']
             start, end = wall_id.split('-')
@@ -907,7 +907,7 @@ def view_from(objects, corners, viewer_pos, facing=None):
 # ---------------------------------------------------------------------------
 
 RULES_PATH = Path(__file__).parent / "rules" / "clearances.yaml"
-SEVERITY_ORDER = {'ERROR': 0, 'WARN': 1, 'SKIP': 2}
+SEVERITY_ORDER = {'ERROR': 0, 'WARN': 1, 'PASS': 2, 'SKIP': 3}
 
 def load_rules():
     """Load canonical rule table from scripts/rules/clearances.yaml -> {id: rule}."""
@@ -926,7 +926,7 @@ def finding(severity, rule, message, items=None):
 def room_polygon_pts(room, corners):
     """Room boundary polygon in wall order (same logic as validate_objects)."""
     polygon = []
-    for wall in room.get('walls', []):
+    for wall in room.get('walls') or []:
         start = wall['id'].split('-')[0]
         if start in corners:
             polygon.append(corners[start])
@@ -1356,6 +1356,7 @@ def check_bed(objects, rules, findings, room_polygon):
     obstacles = floor_obstacles(objects)
     openings = circulation_endpoints(objects)
     r1, r2 = rules.get('BED-01'), rules.get('BED-02')
+    bedside_ids = {o['id'] for o in by_item_type(objects, 'nightstand', 'side-table')}
     for bed in beds:
         facing = bed.get('facing')
         face_vec = DIRECTIONS.get(facing) if facing else None
@@ -1375,10 +1376,12 @@ def check_bed(objects, rules, findings, room_polygon):
                 dims = bed.get('dims') or {}
                 long_side = max(dims.get('width', 0), dims.get('depth', 0))
                 kind = 'side' if abs(edge_len - long_side) < 1 else 'foot?'
-            d, blocker = edge_clearance(p1, p2, normal, obstacles, room_polygon, {bed['id']})
+            # Measure past bedside furniture (nightstands sit beside the bed by design)
+            d, blocker = edge_clearance(p1, p2, normal, obstacles, room_polygon,
+                                        {bed['id']} | bedside_ids)
             side = vec_to_cardinal(normal)
             if kind == 'side' and r1:
-                if d < 10:
+                if d < 10 and blocker == 'wall':
                     continue  # against a wall — unused side
                 if d < r1['min_cm']:
                     findings.append(finding('ERROR', 'BED-01',
@@ -1522,6 +1525,11 @@ def check_windows(objects, rules, findings, room_polygon):
     for w in objects:
         if w['type'] != 'window' or not w.get('width'):
             continue
+        wtype = (w.get('window_type') or '').lower()
+        if wtype in ('fixed', 'non-operable'):
+            findings.append(finding('SKIP', 'WIN-01',
+                f"{w['id']} is a fixed pane — no approach required", [w['id']]))
+            continue
         unit, perp = w['wall_unit'], w['wall_perp']
         p1 = w['pos']
         p2 = (p1[0] + unit[0] * w['width'], p1[1] + unit[1] * w['width'])
@@ -1554,7 +1562,31 @@ def check_tv(objects, rules, findings):
             findings.append(finding('SKIP', 'TV-01',
                 f"no sofa/armchair to measure viewing distance for {tv['id']}", [tv['id']]))
             continue
-        seat = min(seats, key=lambda s: bbox_to_bbox_distance(tv['bbox'], s['bbox']))
+        # Only seats that can actually watch this screen count as viewing seats:
+        # inside the screen's ±60° cone, and (when the seat has a facing) turned
+        # no more than ~35° away from the screen (THX off-axis limit).
+        tv_face = DIRECTIONS.get((tv.get('facing') or '').lower())
+        tvc = bbox_center(tv['bbox'])
+        viewing = []
+        for s in seats:
+            sc = bbox_center(s['bbox'])
+            vx, vy = sc[0] - tvc[0], sc[1] - tvc[1]
+            norm = math.hypot(vx, vy)
+            if norm < 1e-9:
+                continue
+            vx, vy = vx / norm, vy / norm
+            if tv_face and (vx * tv_face[0] + vy * tv_face[1]) < 0.5:
+                continue  # seat outside the screen's cone
+            s_face = DIRECTIONS.get((s.get('facing') or '').lower())
+            if s_face and (-vx * s_face[0] - vy * s_face[1]) < 0.82:
+                continue  # screen more than ~35° off the seat's axis
+            viewing.append(s)
+        if not viewing:
+            findings.append(finding('SKIP', 'TV-01',
+                f"no seating oriented toward {tv['id']} ({diag}\") — "
+                f"not positioned for primary viewing", [tv['id']]))
+            continue
+        seat = min(viewing, key=lambda s: bbox_to_bbox_distance(tv['bbox'], s['bbox']))
         d = bbox_to_bbox_distance(tv['bbox'], seat['bbox'])
         diag_cm = diag * 2.54
         ratio = d / diag_cm
@@ -1573,7 +1605,7 @@ def check_tv(objects, rules, findings):
 def check_proportions(room, corners, objects, rules, findings):
     """PROP-01 sofa vs its wall; PROP-02 coffee table vs sofa."""
     sofas = [o for o in by_item_type(objects, 'sofa') if o.get('bbox') and o.get('dims')]
-    walls = room.get('walls', [])
+    walls = room.get('walls') or []
     r1 = rules.get('PROP-01')
     if r1 and sofas and walls:
         for sofa in sofas:
@@ -1591,6 +1623,12 @@ def check_proportions(room, corners, objects, rules, findings):
                 d = segment_to_segment_distance(probe, probe, corners[start], corners[end])
                 if best is None or d < best[0]:
                     best = (d, wall)
+            if best[0] > 40:
+                findings.append(finding('SKIP', 'PROP-01',
+                    f"{sofa['id']} floats free of walls (back edge {best[0]:.0f}cm "
+                    f"from nearest wall) — wall-proportion rule not applicable",
+                    [sofa['id']]))
+                continue
             wall = best[1]
             wall_len = wall['length']
             width = sofa['dims'].get('width', sofa['dims'].get('length', 0))
@@ -1643,7 +1681,7 @@ def check_rugs(room, corners, objects, rules, findings):
                     "no rug item with dimensions", []))
         return
     dining = [o for o in by_item_type(objects, 'dining-table') if o.get('bbox')]
-    walls = room.get('walls', [])
+    walls = room.get('walls') or []
     for rug in rugs:
         table = next((t for t in dining if bbox_overlaps(rug['bbox'], t['bbox'])), None)
         if table and 'RUG-02' in rules:
@@ -1748,14 +1786,25 @@ def check_circulation(room, objects, rules, findings, grid):
                         findings.append(finding('WARN', 'CIRC-01',
                             f"{pair} corridor {width:.0f}cm below ideal "
                             f"{r1['ideal_cm']}cm (min {r1['min_cm']}cm)", [a['id'], b['id']]))
+                    else:
+                        findings.append(finding('PASS', 'CIRC-01',
+                            f"{pair} corridor {width:.0f}cm "
+                            f"(min {r1['min_cm']}cm, ideal {r1['ideal_cm']}cm)",
+                            [a['id'], b['id']]))
 
     # Declared routes
-    routes = room.get('circulation') or []
+    raw_routes = room.get('circulation')
+    routes = raw_routes or []
     routes_segments = []
     if not routes:
         if 'CIRC-02' in rules:
-            findings.append(finding('SKIP', 'CIRC-02',
-                "circulation: not specified — run /planhaus:zone", []))
+            if raw_routes is None:
+                findings.append(finding('SKIP', 'CIRC-02',
+                    "circulation: not specified — run /planhaus:zone", []))
+            else:
+                findings.append(finding('SKIP', 'CIRC-02',
+                    "circulation: declared empty — no door-to-door routes "
+                    "in this room", []))
         return routes_segments
     all_by_id = {o['id']: o for o in objects}
     for route in routes:
@@ -1800,10 +1849,16 @@ def check_circulation(room, objects, rules, findings, grid):
                 f"{label} corridor {width:.0f}cm below ideal {r['ideal_cm']}cm "
                 f"(route '{rid}', min {r['min_cm']}cm)",
                 [route.get('from'), route.get('to')]))
+        else:
+            findings.append(finding('PASS', rule_id,
+                f"{label} corridor {width:.0f}cm (route '{rid}', "
+                f"min {r['min_cm']}cm, ideal {r['ideal_cm']}cm)",
+                [route.get('from'), route.get('to')]))
     return routes_segments
 
-def check_zones(room, objects, findings):
-    """Zone bounds contain their members' bboxes (WARN beyond 10cm)."""
+def check_zones(room, objects, rules, findings):
+    """ZONE-01: zone bounds contain their members' bboxes (WARN beyond tolerance)."""
+    tolerance = (rules.get('ZONE-01') or {}).get('tolerance_cm', 10)
     zones = room.get('zones') or []
     if not zones:
         findings.append(finding('SKIP', 'ZONE-01',
@@ -1824,13 +1879,14 @@ def check_zones(room, objects, findings):
             continue  # zone without numeric bounds
         minx, miny, maxx, maxy = bbox_aabb(o['bbox'])
         overflow = max(0, bx[0] - minx, maxx - bx[1], by[0] - miny, maxy - by[1])
-        if overflow > 10:
+        if overflow > tolerance:
             findings.append(finding('WARN', 'ZONE-01',
                 f"{o['id']} extends {overflow:.0f}cm outside zone '{o['zone']}' bounds",
                 [o['id']]))
 
-def check_sightlines(room, objects, findings):
-    """Focal point visible from each opening (items >75cm tall block)."""
+def check_sightlines(room, objects, rules, findings):
+    """SIGHT-01: focal point visible from each opening (tall items block)."""
+    blocker_h = (rules.get('SIGHT-01') or {}).get('blocker_height_cm', 75)
     focal = room.get('focal_point') or {}
     ref = focal.get('ref')
     if not ref:
@@ -1858,7 +1914,7 @@ def check_sightlines(room, objects, findings):
                 findings.append(finding('SKIP', 'SIGHT-01',
                     f"height unknown on {o['id']} — cannot verify sightline "
                     f"from {op['id']} to '{ref}'", [o['id'], op['id']]))
-            elif h > 75:
+            elif h > blocker_h:
                 findings.append(finding('WARN', 'SIGHT-01',
                     f"focal point '{ref}' blocked from {op['id']} by {o['id']} "
                     f"(height {h}cm)", [op['id'], o['id'], ref]))
@@ -1892,8 +1948,8 @@ def run_checks(room, corners, objects, room_path):
     check_proportions(room, corners, objects, rules, findings)
     check_rugs(room, corners, objects, rules, findings)
     check_pendants(objects, rules, findings)
-    check_zones(room, objects, findings)
-    check_sightlines(room, objects, findings)
+    check_zones(room, objects, rules, findings)
+    check_sightlines(room, objects, rules, findings)
 
     findings.sort(key=lambda f: (SEVERITY_ORDER.get(f['severity'], 3), f['rule']))
     return findings
@@ -1944,6 +2000,13 @@ def main():
     # Validation + rules engine (rules only with --check)
     validation_warnings = validate_objects(objects, corners, room)
     findings = run_checks(room, corners, objects, room_path) if args.check else None
+    # Under --check, geometry problems are first-class ERROR findings (GEOM-01)
+    # so JSON consumers (e.g. the PostToolUse hook) see them in `rules` too.
+    if findings is not None and validation_warnings:
+        geom = [finding('ERROR', 'GEOM-01', w.replace('# WARNING: ', '', 1), [])
+                for w in validation_warnings]
+        findings = geom + findings
+        findings.sort(key=lambda f: (SEVERITY_ORDER.get(f['severity'], 4), f['rule']))
 
     # Resolve --view / --gap inputs up-front (shared by text and JSON modes)
     viewer = None
@@ -1996,8 +2059,7 @@ def main():
             plot_room(room, corners, objects, room_path, viewer_info, args.plot or None)
         print(json.dumps(payload, indent=2, ensure_ascii=False))
         if args.check:
-            has_error = bool(validation_warnings) or any(
-                f['severity'] == 'ERROR' for f in findings)
+            has_error = any(f['severity'] == 'ERROR' for f in findings)
             sys.exit(1 if has_error else 0)
         return
 
@@ -2071,18 +2133,16 @@ def main():
     # Rule check (--check)
     if findings is not None:
         print("\n## Rule check")
-        if validation_warnings:
-            print(f"  # {len(validation_warnings)} geometry warning(s) above "
-                  f"count as ERROR under --check")
         for f in findings:
             print(f"  {f['severity']} {f['rule']}: {f['message']}")
         n_err = sum(1 for f in findings if f['severity'] == 'ERROR')
         n_warn = sum(1 for f in findings if f['severity'] == 'WARN')
+        n_pass = sum(1 for f in findings if f['severity'] == 'PASS')
         n_skip = sum(1 for f in findings if f['severity'] == 'SKIP')
         if not findings:
             print("  All checks passed")
-        print(f"  ── {n_err + len(validation_warnings)} error(s), "
-              f"{n_warn} warning(s), {n_skip} skipped")
+        print(f"  ── {n_err} error(s), {n_warn} warning(s), "
+              f"{n_pass} passed, {n_skip} skipped")
 
     # View from position
     if viewer:
@@ -2118,7 +2178,7 @@ def main():
                     distances.append((d, obj1['id'], obj2['id']))
             
             # Object-to-wall distances
-            walls = room.get('walls', [])
+            walls = room.get('walls') or []
             for obj in items:
                 for wall in walls:
                     wall_id = wall['id']
@@ -2147,10 +2207,9 @@ def main():
             viewer_info = {'pos': viewer, 'facing': view_facing, 'visible': visible}
         plot_room(room, corners, objects, room_path, viewer_info, args.plot or None)
 
-    # Exit code: under --check, any rule ERROR or geometry warning fails the run
+    # Exit code: under --check, any ERROR finding (incl. GEOM-01) fails the run
     if args.check:
-        has_error = bool(validation_warnings) or any(
-            f['severity'] == 'ERROR' for f in findings)
+        has_error = any(f['severity'] == 'ERROR' for f in findings)
         sys.exit(1 if has_error else 0)
 
 def plot_room(room, corners, objects, room_path, viewer_info=None, output_path=None):

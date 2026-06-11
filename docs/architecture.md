@@ -53,7 +53,7 @@ planhaus/
 |---|---|---|---|
 | `new-project` | 0 | upgraded | Scaffold from templates (now includes concept.yaml) |
 | `setup` | 0 | kept | Install optional catalog deps |
-| `brief` | 1 Programming | **new** | Guided client intake interview → `brief.yaml` (incl. numeric `budget_total`) |
+| `brief` | 1 Programming | **new** | Guided client intake interview → `brief.yaml` (incl. numeric `budget.total`) |
 | `concept` | 2 Concept | **new** | Research-driven translation of brief → `concept.yaml` + per-room `design:` blocks |
 | `zone` | 3 Zoning | **new** | Fixed-feature inventory, focal point, zones + circulation routes → room YAML |
 | `furnish` | 4 Layout | **new** | Anchor-first placement inside zones, validate/render loop, cites rule IDs |
@@ -121,7 +121,7 @@ Format per rule:
 | BED-02 | Bed foot clearance (if passage) | 60 | 90 | |
 | TV-01 | TV viewing distance vs diagonal | 1.0× | 1.2–2.5× (range) | 4K default; needs `screen_diagonal_in` on the TV item |
 | KIT-01 | Kitchen work aisle (counter-facing) | 91 | 107 | |
-| DOOR-01 | Door swing arc clear | — | — | ERROR on overlap; `has_door: true` openings, radius = width |
+| DOOR-01 | Door swing arc clear | — | — | `has_door: true` openings, radius = width, both hinges tried; ERROR when both swings blocked, WARN when one (hinge side undeclared) |
 | WIN-01 | Access to operable windows/balcony doors | 60 | 75 | clear approach in front |
 | HEAT-01 | Radiator not blocked | 15 | 30 | WARN only |
 | LIGHT-01 | Pendant above table surface | 76 | 76–91 (range) | only if `hang_height_cm` given |
@@ -129,6 +129,9 @@ Format per rule:
 | PROP-02 | Coffee table vs sofa length | 40% | 55–75% (range) | |
 | RUG-01 | Living rug bare-floor border to walls | 20 | 30–60 (range) | only if rug has dimensions |
 | RUG-02 | Dining rug extends beyond table | 50 | 61 | chairs stay on rug |
+| ZONE-01 | Zone bounds contain member bboxes | — | tolerance 10 | WARN-only; overflow beyond tolerance |
+| SIGHT-01 | Focal point visible from openings | — | blocker height 75 | WARN-only; tall items interrupt the sightline |
+| GEOM-01 | Geometry validity | — | — | collisions / out-of-bounds from the base validator, surfaced as ERROR findings under `--check` |
 
 ### `room_spatial.py` upgrades
 
@@ -182,7 +185,7 @@ colors` (JSON string) and `full_product` (JSON string, kept).
   (missing dims pass dimension filters but get flagged `dims_unknown`).
 - New `enrich` CLI: `catalog_vectordb.py enrich export --missing style --out pending.jsonl`
   (id, name, category, description excerpt) and `enrich import --in enriched.jsonl` (id → style,
-  optionally leg_style/color_family overrides; updates metadata in place, no re-embedding).
+  optionally color_family/primary_material overrides; updates metadata in place, no re-embedding).
 
 ### MCP server (`mcp_server.py`)
 
@@ -324,7 +327,7 @@ repository, keywords`, and `userConfig`:
 ```json
 "userConfig": {
   "catalog_db_path": {
-    "type": "string", "required": false,
+    "type": "string", "title": "Catalog database path", "required": false,
     "description": "Absolute path to your catalog_vector_db/ directory (host). Leave empty if you don't use catalog search."
   }
 }

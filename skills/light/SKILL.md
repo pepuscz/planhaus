@@ -47,7 +47,9 @@ Sum your fixtures' lumens per zone and layer, and show the math against these ta
 ### 4. Geometry & power
 
 - Pendants over tables: cite LIGHT-01 and set `hang_height_cm` so `--check` can verify it;
-  center the pendant on the table, not on the room.
+  center the pendant on the table, not on the room. `hang_height_cm` = the pendant's
+  BOTTOM above the finished floor (cm); LIGHT-01 derives the table clearance by
+  subtracting the table height (e.g. 155cm over a 74cm table → 81cm clearance).
 - Floor/table lamps: set `uses_outlet: <outlet-id>`; confirm from the positions output that
   the outlet exists nearby and the cord doesn't cross a circulation route. No outlet near →
   back-edge (see above).
@@ -73,7 +75,7 @@ lighting:
   - id: dining-pendant
     position: { wall: [C-A, A-B], offset: [150, 200] }
     mount: pendant
-    hang_height_cm: 80
+    hang_height_cm: 155          # pendant bottom above floor → ~80cm above a 74–76cm table top
     layer: task
     color_temp_k: 2700
     lumens: 1200

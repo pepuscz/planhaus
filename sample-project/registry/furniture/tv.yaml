@@ -5,7 +5,7 @@ url: "https://samsung.com/es/tvs/the-frame"
 price: 899
 currency: EUR
 
-status: considering
+status: installed
 
 category: other   # TV — no closer match in the controlled vocab
 
@@ -14,6 +14,8 @@ dimensions:
   depth: 3
   height: 65
 
+screen_diagonal_in: 50   # enables the TV-01 viewing-distance check
+
 mass: 14
 
 materials: [aluminum frame, QLED panel]
@@ -21,7 +23,7 @@ colors: [black bezel, customizable frame]
 finish: "matte anti-glare"
 style: [modern]
 
-palette_role: accent
+# palette_role omitted: a black screen is neutral tech, outside the 60-30-10 bands
 visual_weight: medium
 
 description: |

@@ -47,18 +47,21 @@ priorities: |
   - Reading nook or corner
   - Balcony integration
 
-budget: |
-  Quality level:
-  Mid-range baseline (Kave Home / Zara Home), splurge on 1-2 hero pieces.
+budget:
+  total: 12000
+  currency: EUR
+  notes: |
+    Quality level:
+    Mid-range baseline (Kave Home / Zara Home), splurge on 1-2 hero pieces.
 
-  Where to splurge:
-  - Sofa (daily use, comfort matters)
-  - Main pendant light (statement piece)
+    Where to splurge:
+    - Sofa (daily use, comfort matters)
+    - Main pendant light (statement piece)
 
-  Where to save:
-  - Side tables, shelving
-  - Bedroom basics
-  - Accessories
+    Where to save:
+    - Side tables, shelving
+    - Bedroom basics
+    - Accessories
 
 constraints: |
   Things we can't change:

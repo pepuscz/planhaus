@@ -83,7 +83,8 @@ flagged stretch.
 - `focal_point:` — `ref` (feature/item id) + `why`. One per room.
 - `circulation:` — door-to-door routes (`from`/`to` opening ids) with `rule: CIRC-01`
   (main) or `CIRC-02` (secondary); the rules engine checks achieved widths.
-- `sightlines:` — `from`/`toward` pairs with `keep_clear: true`.
+- `sightlines:` — `from`/`toward` pairs with `keep_clear: true` (annotation-only; the
+  engine independently checks opening→focal_point as SIGHT-01).
 - Furniture items take `type:` (controlled vocab — lets the rules engine pick the right
   clearance rules) and `zone:` (zone id). `why:` stays required.
 - Lighting items take `layer: ambient|task|accent`, `color_temp_k`, `lumens`.

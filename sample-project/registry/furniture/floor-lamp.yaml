@@ -5,7 +5,7 @@ url: "https://kavehome.com/es/en/wayna-floor-lamp"
 price: 129
 currency: EUR
 
-status: considering
+status: installed
 
 category: floor_lamp
 
@@ -23,7 +23,7 @@ colors: [black base, natural linen]
 finish: "matte powder coat"
 style: [modern]
 
-palette_role: secondary
+palette_role: dominant   # the linen shade carries the dominant band; black stem reads neutral
 visual_weight: light
 
 description: |

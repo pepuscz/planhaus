@@ -47,6 +47,10 @@ Coffee table (SEAT-01, PROP-02), side tables, extra seats (SEAT-02 spacing), med
 viewing distance), rugs (RUG-01/RUG-02), storage. Cite rule IDs in your reasoning; don't
 restate their numbers.
 
+When two placements both seem defensible, delegate to the `planhaus:space-planner`
+subagent: it produces 2–3 genuinely different layout alternatives, scores them against the
+rules, and recommends one with trade-offs.
+
 ### 4. Check after EVERY placement batch
 
 ```bash

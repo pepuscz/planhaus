@@ -85,7 +85,10 @@ rules:
     applies: item
     min_ratio: 1.0             # distance / diagonal; below -> ERROR
     ideal_ratio_range: [1.2, 2.5]   # outside -> WARN (4K default)
-    notes: "Needs screen_diagonal_in on the TV item or its registry; measured to nearest sofa/armchair front."
+    notes: "Needs screen_diagonal_in on the TV item or its registry. Measured to the
+      nearest viewing seat: a sofa/armchair inside the screen's ±60° cone and turned
+      no more than ~45° away from it. No viewing seat -> SKIP (TV not positioned for
+      primary viewing)."
     source: "RTINGS/THX TV distance guidelines"
 
   - id: KIT-01
@@ -99,8 +102,11 @@ rules:
   - id: DOOR-01
     name: "Door swing arc clear"
     applies: item
-    severity_on_overlap: ERROR
-    notes: "Quarter-circle swing (radius = opening width) for has_door: true openings; ERROR only if both swing directions are blocked."
+    severity_both_blocked: ERROR   # room YAML does not declare the hinge side,
+    severity_one_blocked: WARN     # so ERROR only when BOTH possible swings are blocked
+    notes: "Quarter-circle swing (radius = opening width) for has_door: true openings,
+      tried from both hinge positions. One side blocked -> WARN naming the free hinge;
+      both blocked -> ERROR."
     source: "Karlen, Space Planning Basics"
 
   - id: WIN-01
@@ -108,7 +114,9 @@ rules:
     applies: item
     min_cm: 60
     ideal_cm: 75
-    notes: "Clear approach rectangle in front of each operable window or balcony door."
+    notes: "Clear approach rectangle in front of each operable window or balcony door.
+      Windows declared `type: fixed` (or `non-operable`) are exempt (SKIP) — e.g. a
+      fixed pane above a kitchen counter."
     source: "Panero & Zelnik, Human Dimension & Interior Space; Karlen, Space Planning Basics"
 
   - id: HEAT-01
@@ -125,7 +133,9 @@ rules:
     applies: item
     min_cm: 76
     ideal_range_cm: [76, 91]
-    notes: "Pendant bottom to table top; only checked if hang_height_cm given."
+    notes: "hang_height_cm = pendant BOTTOM above the finished floor (cm).
+      Checked distance = hang_height_cm minus the table height underneath;
+      only checked if hang_height_cm is given."
     source: "NKBA Kitchen/Bath Planning Guidelines"
 
   - id: PROP-01
@@ -160,3 +170,29 @@ rules:
     ideal_cm: 61
     notes: "Rug border past the table edge on each side, so chairs stay on the rug."
     source: "Emily Henderson rug rules"
+
+  - id: ZONE-01
+    name: "Zone bounds contain member bboxes"
+    applies: item
+    tolerance_cm: 10           # overflow beyond this -> WARN
+    severity: WARN
+    notes: "Furniture assigned to a zone (zone: <id>) should sit inside that zone's
+      declared bounds; small overhangs up to the tolerance are fine."
+    source: "Karlen, Space Planning Basics (block planning)"
+
+  - id: SIGHT-01
+    name: "Focal point visible from openings"
+    applies: room
+    blocker_height_cm: 75      # items taller than this block a sightline
+    severity: WARN
+    notes: "Straight sightline from each opening midpoint to focal_point.ref;
+      items above the blocker height interrupt it. Height unknown -> SKIP."
+    source: "Karlen, Space Planning Basics (entry sight lines)"
+
+  - id: GEOM-01
+    name: "Geometry validity (collisions, bounds)"
+    applies: room
+    severity: ERROR
+    notes: "Overlapping items and out-of-bounds furniture from the base validator,
+      surfaced as findings under --check (always ERROR)."
+    source: "planhaus base validator"

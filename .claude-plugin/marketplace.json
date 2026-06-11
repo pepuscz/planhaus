@@ -1,5 +1,6 @@
 {
   "name": "planhaus",
+  "description": "Interior-design copilot plugin for Claude Desktop / Cowork / Claude Code",
   "owner": {
     "name": "Josef Gattermayer"
   },

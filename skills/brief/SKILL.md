@@ -44,11 +44,15 @@ Ask for a concrete example or a reference photo whenever an answer stays abstrac
 ## Writing brief.yaml
 
 Follow the structure of `templates/brief.yaml` exactly (`about_us`, `mood`, `taste`,
-`priorities`, `budget`, `constraints`, `shops`, `references`), plus two structured fields:
+`priorities`, `budget`, `constraints`, `shops`, `references`). The `budget` section is a
+mapping with a numeric total:
 
 ```yaml
-budget_total: 25000       # numeric — /planhaus:concept allocates from this
-currency: EUR
+budget:
+  total: 25000            # numeric — /planhaus:concept allocates from this
+  currency: EUR
+  notes: |
+    Quality level, where to splurge, where to save (client's words).
 ```
 
 Record the client's words (cleaned up), not your interpretations — interpretation happens in
@@ -56,8 +60,9 @@ Record the client's words (cleaned up), not your interpretations — interpretat
 
 ## Notes
 
-- `budget_total` and `currency` are optional-but-recommended: old projects without them still
-  work, but `/planhaus:concept` will ask for a number before allocating budget.
+- `budget.total` and `budget.currency` are optional-but-recommended: old projects with a
+  free-text budget block still work, but `/planhaus:concept` will ask for a number before
+  allocating budget.
 - If `brief.yaml` already exists, read it first and only interview the gaps; summarize what
   changed and warn that a changed brief means re-checking `concept.yaml`.
 - End by summarizing the brief in ~5 lines for client confirmation, then suggest: `/planhaus:concept`.

@@ -171,25 +171,34 @@ def _match_phrase(phrase: str, folded_text: str) -> bool:
 # =============================================================================
 
 def parse_price(price_str: str) -> float:
-    """Extract numeric price from various formats."""
+    """Extract numeric price from various formats.
+
+    Handles EU decimals ("69,99 €"), dot thousands ("1.499 €"), US format
+    ("€1,499.00") and space/nbsp thousands ("1 299,00 €").
+    """
     if not price_str:
         return 0.0
+    s = str(price_str)
+    # Join space/nbsp-grouped thousands: "1 299,00" -> "1299,00"
+    s = re.sub(r"(\d)[\s  ]+(?=\d{3}\b)", r"\1", s)
 
-    # Find all numbers (handle European format with comma as decimal)
-    # Look for patterns like "1.499 €" or "69,99 €" or "27,99 € - 35,99 €"
-    matches = re.findall(r'[\d.,]+', str(price_str))
-
-    for match in matches:
+    best = 0.0
+    for match in re.findall(r"[\d.,]+", s):
         try:
-            # Handle European format: 1.499 (thousands) or 69,99 (decimal)
-            clean = match.replace('.', '').replace(',', '.')
-            value = float(clean)
-            if value > 0:
-                return value
+            # A trailing ".dd" / ",dd" group is the decimal part; other
+            # separators are thousands groupers.
+            m = re.fullmatch(r"(\d{1,3}(?:[.,\s]\d{3})*|\d+)(?:([.,])(\d{1,2}))?", match)
+            if m:
+                whole = re.sub(r"[.,\s]", "", m.group(1))
+                value = float(f"{whole}.{m.group(3)}" if m.group(3) else whole)
+            else:
+                value = float(match.replace(".", "").replace(",", "."))
         except ValueError:
             continue
-
-    return 0.0
+        # Prefer the first complete price, not a stray leading digit
+        if value > 0 and best == 0.0:
+            best = value
+    return best
 
 
 # =============================================================================
@@ -278,8 +287,15 @@ def parse_dims_from_text(text: str) -> Tuple[float, float, float, bool]:
 
     m = _TRIPLE_RE.search(folded)
     if m:
-        return (_num_to_float(m.group(1)), _num_to_float(m.group(2)),
-                _num_to_float(m.group(3)), True)
+        a, b, c = (_num_to_float(m.group(i)) for i in (1, 2, 3))
+        # Quantity pattern guard: "set of 2 x 45 x 45 cm" / "pair ... 2 x 140 x 260 cm"
+        # — a small leading integer next to two real measures is a count, not a width.
+        prefix = folded[max(0, m.start() - 12):m.start()]
+        count_context = any(t in prefix for t in
+                            ("set of", "pack", "pair", "lot de", "juego de", "set de"))
+        if (a < 10 and a == int(a) and b >= 20 and c >= 20) or count_context:
+            return b, c, 0.0, True   # treat as count × W × H → keep the two measures
+        return a, b, c, True
 
     m = _PAIR_RE.search(folded)
     if m:
@@ -872,6 +888,18 @@ class CatalogVectorDB:
         """Build or update the vector database from all catalogs."""
         print("🔄 Building/updating vector database...")
 
+        # A pre-v2 DB cannot be fixed incrementally: the collection keeps its
+        # old (l2) space and unchanged products keep v1 metadata. Refuse rather
+        # than stamping v2 over a half-migrated database.
+        stale = self._read_db_version() < DB_VERSION and self.collection.count() > 0
+        if stale and not force:
+            print(
+                "❌ Existing database predates v2 (old metadata + l2 space).\n"
+                "   An incremental build cannot migrate it. Rebuild with:\n"
+                "   python catalog_vectordb.py build --force"
+            )
+            return
+
         if force:
             # Recreate the collection so v2 settings (cosine space) apply
             print("♻️  --force: recreating collection (cosine space, v2 metadata)")
@@ -1249,13 +1277,18 @@ class CatalogVectorDB:
                     skipped.append(f"line {lineno}: missing id")
                     continue
                 style = rec.get("style", "")
-                if style not in STYLE_VOCAB:
+                if style == "":
+                    # Explicit empty style = "deliberately unclassified": leave the
+                    # style field untouched (allows color/material-only fixes).
+                    patch = {}
+                elif style not in STYLE_VOCAB:
                     skipped.append(
                         f"line {lineno} ({pid}): invalid style '{style}' "
                         f"(allowed: {', '.join(STYLE_VOCAB)})"
                     )
                     continue
-                patch = {"style": style}
+                else:
+                    patch = {"style": style}
                 cf = rec.get("color_family")
                 if cf is not None:
                     if cf not in COLOR_FAMILIES:
@@ -1272,7 +1305,8 @@ class CatalogVectorDB:
                         )
                         continue
                     patch["primary_material"] = pm
-                updates[pid] = patch
+                if patch:
+                    updates[pid] = patch
 
         updated = 0
         missing_ids: List[str] = []

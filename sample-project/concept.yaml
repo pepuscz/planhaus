@@ -13,7 +13,7 @@ style:
   secondary: [scandinavian]
   signals:
     - "natural linen and woven cord textures"
-    - "warm mid-tone wood: walnut, oak, beech in the same family"
+    - "warm mid-tone wood: walnut, oak, ash, beech in the same family"
     - "rounded corners and clean, low-profile lines"
     - "matte ceramic and terracotta surfaces"
     - "brushed brass details, never chrome"
@@ -50,6 +50,7 @@ materials:
   - { name: linen, role: dominant, rooms: [living-room, bedroom] }
   - { name: walnut, role: secondary, rooms: [living-room] }
   - { name: oak, role: secondary, rooms: [bedroom] }
+  - { name: ash, role: secondary, rooms: [bedroom] }
   - { name: terracotta ceramic, role: accent, rooms: [living-room, bedroom] }
   - { name: brass, role: accent, rooms: [living-room] }
 
@@ -66,6 +67,13 @@ budget:
   currency: EUR
   allocation: { anchor: 60, supporting: 25, accent: 15 }
   rooms: { living-room: 8000, bedroom: 4000 }
+  # Splurge exceptions from the brief — excluded from tier-line math, the 1.2x
+  # price gate applies to these amounts instead:
+  statement_pieces:
+    - { item: dining-pendant, room: living-room, amount: 600 }
+  # Electronics (TV) count as supporting tier. Current spend is well under the
+  # per-room split: the remainder stays unallocated for rugs, curtains, art and
+  # accessories still to be selected.
 
 room_hierarchy:
   - { room: living-room, emphasis: high, why: "Where guests land and both work from home; holds the one wow moment (brass pendant)" }

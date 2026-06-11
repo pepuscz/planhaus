@@ -58,7 +58,7 @@ design:
     - "60-30-10: white walls/tile + beige linen (60%), walnut + terracotta (30%), brass accents (10%)"
     - "Sofa backs the north wall and faces the south balcony — daylight does the decorating"
     - "Dining for 4 in the bright SW corner, bridging kitchen and seating without blocking either"
-    - "Layered lighting: pendant over dining + floor lamp at sofa + task spots over the counter"
+    - "Layered lighting: dimmable ceiling wash + pendant over dining + floor lamp at sofa + counter spots + plant uplight accent"
     - "Rug to warm the tile floor and anchor the seating zone"
     - "Keep paths clear: entry → balcony along the west side, kitchen → dining along the counter aisle"
 
@@ -71,10 +71,7 @@ built_ins:
     zone: kitchen
     description: |
       White laminate base + wall cabinets. Countertop runs along the south wall
-      eastern half. Includes sink, 2-burner hob, small fridge. A small fixed-pane
-      window (~100cm wide) sits above the counter near its centre — reached over
-      the worktop, so it is documented here rather than under windows:
-      (see notes).
+      eastern half. Includes sink, 2-burner hob, small fridge.
 
 windows:
   - id: balcony-door
@@ -83,6 +80,13 @@ windows:
     width: 180
     type: sliding-door
     notes: "South-facing balcony access, main natural light source"
+
+  - id: kitchen-window
+    wall: A-B
+    position: 370
+    width: 100
+    type: fixed
+    notes: "Fixed pane above the kitchen counter — reached over the worktop; exempt from WIN-01"
 
 openings:
   - id: hall-entry
@@ -117,6 +121,12 @@ outlets:
     height: 110
     type: double
 
+  - id: outlet-balcony
+    wall: A-B
+    position: 25
+    height: 30
+    type: single
+
 heating: []
 plumbing: []
 
@@ -135,7 +145,7 @@ zones:
     purpose: "Daily meals for 2, dinners for 4, laptop work in daylight"
     anchor: dining-table
     bounds: { x: [10, 160], y: [80, 300] }
-    lighting: [ambient]
+    lighting: [task]
 
   - id: kitchen
     purpose: "Cooking along the built-in counter"
@@ -167,7 +177,7 @@ lighting:
       offset: [160, 80]   # centered over the dining table
     ceiling: main
     mount: pendant
-    layer: ambient
+    layer: task
     color_temp_k: 2700
     lumens: 800
     hang_height_cm: 155   # pendant bottom above floor → 81cm above the 74cm table top
@@ -185,6 +195,18 @@ lighting:
     lumens: 1600
     fixture: null
     why: "Shadow-free task light over the worktop; warm temperature keeps the kitchen part of the living room at night."
+
+  - id: living-ambient
+    position:
+      wall: [B-C, A-B]
+      offset: [155, 335]
+    ceiling: main
+    mount: surface
+    layer: ambient
+    color_temp_k: 2700
+    lumens: 2000
+    fixture: null
+    why: "Dimmable warm wash for the seating half (~210 lm/m2 over the 9.6 m2 zone) — the lamps and pendant then do the evening character."
 
 furniture:
   - id: sofa
@@ -281,7 +303,20 @@ furniture:
     mount: wall
     height: 120
     uses_outlet: outlet-tv
-    why: "The Frame hangs as art on the east wall — the balcony stays the room's focus; casual viewing from sofa and dining, gallery mode the rest of the time."
+    why: "The Frame hangs as art on the east wall — the balcony stays the room's focus. No seat is oriented to the screen (TV-01 reports this as a deliberate SKIP); gallery mode by default."
+
+  - id: plant-uplight
+    type: floor-lamp
+    dimensions: { width: 12, depth: 12, height: 25 }
+    position:
+      wall: [F-A, A-B]
+      offset: [28, 10]
+    orientation: E-W
+    layer: accent
+    color_temp_k: 2700
+    lumens: 350
+    uses_outlet: outlet-balcony
+    why: "Accent layer on the focal point — grazes the plants and the balcony reveal at roughly 3x the ambient level after dark."
 
 accessories:
   - id: living-rug
@@ -299,11 +334,20 @@ notes: |
   out of the 560x490 rectangle. Wall trace closes and matches the official
   25.2 m² exactly.
 
-  KITCHEN WINDOW — a small fixed-pane window sits above the kitchen counter
-  (south wall, eastern half). It is deliberately NOT listed under windows:
-  the rules engine flags anything in front of a window as blocking access
-  (WIN-01), which is a false positive for a worktop you reach over. It is
-  documented in the kitchen-cabinets description instead.
+  KITCHEN WINDOW — fixed pane above the worktop, declared `type: fixed`,
+  which exempts it from the WIN-01 approach check (you reach over the
+  counter; the pane doesn't open).
+
+  TV — `SKIP TV-01: no seating oriented toward tv` is deliberate: The Frame
+  is hung as art and the room is composed around the balcony. Anyone who
+  wants primary TV viewing here should re-run /planhaus:furnish with the
+  seating rotated east — and accept losing the balcony orientation.
+
+  LIGHTING MATH — seating zone 9.6 m2: ambient 2000 lm ~ 210 lm/m2 (target
+  ~215); task: floor lamp 470 lm reading pool; dining: pendant 800 lm pool
+  over the 0.96 m2 table; kitchen: 1600 lm spots over the counter; accent:
+  plant uplight 350 lm ~ 3x ambient on the plants. All 2700 K, all dimmable,
+  layers on separate switches.
 
   KITCHEN→DINING WALKWAY — runs along the counter aisle and past the table's
   chair-free east edge (~135cm clear, verify with --matrix). Not declared

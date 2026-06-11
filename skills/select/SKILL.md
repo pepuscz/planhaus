@@ -40,10 +40,12 @@ Assemble the brief:
    the room. Tiers (from `concept.yaml` `budget.allocation`, default **anchor 60% /
    supporting 25% / accent 15%**):
    - **anchor**: sofa, bed, dining table
-   - **supporting**: coffee table, chairs, rugs, lighting, storage
+   - **supporting**: coffee table, chairs, rugs, lighting, storage, electronics (TV)
    - **accent**: decor, cushions, plants
    Room budget comes from `concept.yaml` `budget.rooms`; count planned items per tier from
-   the room YAML / layout plan.
+   the room YAML / layout plan. Items listed in `budget.statement_pieces` use their own
+   amount as the budget line instead of the tier math (the 1.2× gate applies to that
+   amount) — this is how a brief's "splurge on X" survives the allocation.
 
 4. **Ergonomic band** by category — e.g. sofa/armchair seat height 43–48 cm; dining chair
    seat 45–50 cm under a 71–76 cm table; coffee table top within ~±5 cm of the sofa seat
@@ -75,7 +77,8 @@ On **every** query apply the structured filters:
 
 Use `n` ≈ 8 per query. **Union + dedupe** the results into **10–20 candidates**, then call
 `catalog_get(ids=[...])` on the shortlist to fetch full product data — gates and scores are
-judged from the rich data, not the search snippets.
+judged from the rich data, not the search snippets. `catalog_get` accepts at most 20 ids
+per call (longer lists are truncated) — batch larger shortlists.
 
 ## Step 3 — Hard gates (eliminate, don't score)
 

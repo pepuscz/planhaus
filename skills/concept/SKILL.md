@@ -10,7 +10,7 @@ Translate the brief into the project's design contract: `concept.yaml`. Research
 
 **Reads**: `brief.yaml`, `apartment.yaml` (room list + adjacencies), existing `rooms/*.yaml`.
 **Writes**: `concept.yaml` (project root) + a `design:` block (goal + objectives) in each room YAML.
-**Back-edge**: if `brief.yaml` is missing or lacks mood, LOVE/HATE, or `budget_total`, stop and run `/planhaus:brief` — never invent client preferences.
+**Back-edge**: if `brief.yaml` is missing or lacks mood, LOVE/HATE, or a numeric `budget.total`, stop and run `/planhaus:brief` — never invent client preferences. (Old projects may have a free-text `budget:` block — ask the client for the number rather than guessing.)
 
 ## Steps
 
@@ -49,10 +49,11 @@ lighting:
   color_temp_k: 2700           # one value for the whole home (2700-3000 residential)
   layers_required: [ambient, task, accent]
 budget:
-  total: 0                     # = brief budget_total
+  total: 0                     # = brief budget.total
   currency: EUR
   allocation: { anchor: 60, supporting: 25, accent: 15 }   # % per tier
   rooms: {}                    # room-id: amount — must sum to total
+  statement_pieces: []         # splurge exceptions: {item, room, amount} — excluded from tier-line math
 room_hierarchy: []             # ordered, most important first, each: {room, emphasis, why}
 references: []                 # researched: {url, takeaway}
 ```
@@ -63,6 +64,9 @@ While filling it:
 - Budget: copy the total from the brief; split per room weighted by `room_hierarchy` and the
   brief's splurge/save list. The 60/25/15 tiers (anchor/supporting/accent) are how
   `/planhaus:select` later derives per-item budget lines — keep them numeric.
+- If the brief names splurge items ("statement pendant"), encode each as a
+  `statement_pieces` entry with its own amount — otherwise the tier math caps it at a
+  save-tier line and the splurge silently never happens.
 - `room_hierarchy` decides where the money and statement pieces go; `emphasis` says what kind
   of moment each room gets.
 

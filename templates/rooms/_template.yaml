@@ -107,6 +107,9 @@ circulation: []
   #   rule: CIRC-01
 
 # SIGHTLINES (views that should stay clear / compose well)
+# Annotation-only: the rules engine independently checks opening -> focal_point
+# (SIGHT-01) regardless of this list. Declared pairs document intent for
+# /planhaus:review and human readers; keep_clear is NOT validated by --check.
 sightlines: []
   # - from: hall-entry
   #   toward: focal_point
@@ -117,6 +120,9 @@ sightlines: []
 #   layer: ambient | task | accent   - which lighting layer this fixture provides
 #   color_temp_k: 2700               - keep consistent across the room (2700-3000 residential)
 #   lumens: 800                      - fixture output
+#   hang_height_cm: 155              - pendants: fixture BOTTOM above the floor (cm);
+#                                      LIGHT-01 derives table clearance by subtracting
+#                                      the table height underneath
 lighting: []
   # - id: main-pendant
   #   position:
@@ -127,6 +133,7 @@ lighting: []
   #   layer: ambient         # ambient / task / accent
   #   color_temp_k: 2700
   #   lumens: 800
+  #   hang_height_cm: 155    # pendant bottom above floor (over a 74cm table -> 81cm clearance)
   #   fixture: registry/lighting/example.yaml   # null if TBD
   #   why: Statement piece over dining table.
 
@@ -204,6 +211,7 @@ furniture: []
   #   facing: north         # screen faces into room
   #   mount: wall           # wall-mounted
   #   height: 120           # cm AFFL (center of TV)
+  #   screen_diagonal_in: 55  # enables TV-01 viewing-distance check (or set it in the registry item)
   #
   # - id: table-lamp
   #   registry: registry/lighting/lamp.yaml

@@ -12,7 +12,8 @@ A demo project for planhaus. Fictional young couple designing a ~60m² Mediterra
 
 ## Room YAML features demonstrated
 
-- `zones:` / `focal_point:` / `circulation:` / `sightlines:` blocks in both rooms
+- `zones:` / `focal_point:` / `sightlines:` blocks in both rooms; `circulation:` routes in
+  the living room (the single-opening bedroom declares an explicit empty list)
 - `type:` (controlled vocab) + `zone:` on every furniture item
 - `layer:` / `color_temp_k:` / `lumens:` on lighting (and `hang_height_cm` on the pendant)
 - Honest `validation:` block — the living room's L-shape closes and matches 25.2 m² exactly
@@ -40,5 +41,6 @@ python3 scripts/room_spatial.py sample-project/rooms/living-room.yaml --matrix
 python3 scripts/room_spatial.py sample-project/rooms/living-room.yaml --plot sample-project/rooms/living-room-floorplan.png
 ```
 
-Both rooms pass `--check` with zero ERRORs (exit code 0); remaining WARNs are
-documented trade-offs in the room notes.
+Both rooms pass `--check` with zero ERRORs (exit code 0). The remaining WARN
+(PROP-02 coffee table) and the deliberate `SKIP TV-01: no seating oriented
+toward tv` are documented as trade-offs in the room notes.
